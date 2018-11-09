@@ -1,4 +1,4 @@
-###WIR MÜSSEN LANGSAM ECHTMAL WAS MACHEN
+### WIR MÜSSEN LANGSAM ECHTMAL WAS MACHEN
 Ich mach mal den initial commit. 
 Ich baller hier auch die physics_formula.py rein.
 Plan für die file ist einfach alle physikalischen Formeln reinzuhauen und das dann als Library zu nutzen.
