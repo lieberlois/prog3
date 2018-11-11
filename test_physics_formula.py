@@ -6,7 +6,8 @@ import physics_formula as phy
 import unittest
 import numpy as np
 
-class test_physics_formula(unittest.TestCase):
+
+class TestPhysicsFormula(unittest.TestCase):
     def test_calc_newton(self):
         mass1 = 500
         mass2 = 1000
@@ -23,9 +24,11 @@ class test_physics_formula(unittest.TestCase):
     def test_calc_gravitational_force(self):
         mass1 = 5.97*10**24  
         mass2 = 7.349*10**22
-        pos1 = (0,0,0)
+        pos1 = (0, 0, 0)
         pos2 = (384000000, 0, 0)
         directed_force = phy.calc_gravitational_force(mass1, mass2, pos1, pos2)
         assert np.linalg.norm(directed_force) == 1.9851629785156246*10**20
+
+
 if "__main__" == __name__:
     unittest.main()

@@ -1,1 +1,1 @@
-### WIR MÜSSEN LANGSAM ECHTMAL WAS MACHEN
+## Prog 3 Projekt der Herren Gesell, Mey, Schweigard, Golger und Winkler

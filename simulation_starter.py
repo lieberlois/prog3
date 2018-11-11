@@ -26,6 +26,7 @@ import simulation_mockup
 import galaxy_renderer
 from simulation_constants import END_MESSAGE
 
+
 def _startup():
     renderer_conn, simulation_conn = multiprocessing.Pipe()
     simulation_process = \
@@ -41,6 +42,7 @@ def _startup():
     renderer_conn.send(END_MESSAGE)
     simulation_process.join()
     render_process.join()
+
 
 if __name__ == '__main__':
     _startup()

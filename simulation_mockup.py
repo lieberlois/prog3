@@ -29,7 +29,9 @@ from simulation_constants import END_MESSAGE
 
 __FPS = 60
 __DELTA_ALPHA = 0.01
-def _move_bodies(bodies, delta_t):	# This function will be responsible for setting new positinos.
+
+
+def _move_bodies(bodies, delta_t):  # This function will be responsible for setting new positions.
     for body_index, body in enumerate(bodies):
         j = len(bodies) - body_index
         sin_a = math.sin(__DELTA_ALPHA * j * delta_t)
@@ -41,11 +43,11 @@ def _move_bodies(bodies, delta_t):	# This function will be responsible for setti
     time.sleep(1/__FPS)
 
 
-def _initialise_bodies(nr_of_bodies):  # This function creates our bodies. TODO: This will have to be changed so different masses are set.
+def _initialise_bodies(nr_of_bodies):  # function creates our bodies. TODO: change this so different masses are set.
     body_array = np.zeros((nr_of_bodies, 4), dtype=np.float64)
     for body_index in range(nr_of_bodies):
         body_array[body_index][0] = 0.9/(nr_of_bodies-body_index)
-        body_array[body_index][3] = 0.1 *  body_array[body_index][0]
+        body_array[body_index][3] = 0.1 * body_array[body_index][0]
     return body_array
 
 
@@ -68,4 +70,4 @@ def startup(sim_pipe, nr_of_bodies, delta_t):
                 print('simulation exiting ...')
                 sys.exit(0)
         _move_bodies(bodies, delta_t)
-        sim_pipe.send(bodies)	# Positions changed in moved bodies is sent to the renderer through the pipe.
+        sim_pipe.send(bodies)  # Positions changed in moved bodies is sent to the renderer through the pipe.

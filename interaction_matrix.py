@@ -31,6 +31,7 @@ except ImportError:
     print('Error: PyOpenGL not installed properly !!')
     sys.exit()
 
+
 class InteractionMatrix:
     """Class holding a matrix representing a rigid transformation.
 
@@ -73,6 +74,7 @@ class InteractionMatrix:
         """
         return self.__current_matrix
 
+
 def _main(argv):
     GLUT.glutInit(argv)
     GLUT.glutCreateWindow(str.encode(sys.argv[0]))
@@ -85,6 +87,6 @@ def _main(argv):
     interaction_m.add_translation(1, 2, 3)
     print(interaction_m.get_current_matrix())
 
+
 if __name__ == '__main__':
     _main(sys.argv)
-    

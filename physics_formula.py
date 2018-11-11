@@ -5,7 +5,6 @@ import numpy as np
 from simulation_constants import G_CONSTANT
 
 
-
 def calc_newton(mass, acceleration):
     """
     Funktion zur Berechnung der Kraft F nach Newton
@@ -14,9 +13,8 @@ def calc_newton(mass, acceleration):
     :param acceleration: Beschleunigung des Körpers
     :return: Newton Kraft
     """
-    if(mass < 0):
+    if mass < 0:
         raise Exception
-    
     return mass*acceleration
 
 
@@ -34,10 +32,9 @@ findet, angezogen wird
     :return: Gravitationskraft als Vektor
     """
     
-    #TODO:A body might be able to contain its mass position and current speed, 
-    #     so its probably better to access these instead of using parameters.
+    # TODO:A body might be able to contain its mass position and current speed,
+    #     so its probably better to access bodies of using these parameters.
     pos1 = np.array(position1)
     pos2 = np.array(position2)
     vector_length = np.linalg.norm(pos2-pos1)
     return G_CONSTANT*((mass1*mass2)/vector_length**3)*(pos2-pos1)
-

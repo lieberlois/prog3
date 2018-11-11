@@ -38,6 +38,7 @@ _WINDOW_POSITION = (100, 100)
 _LIGHT_POSITION = (2, 2, 3)
 _CAMERA_POSITION = (0, 0, 2)
 
+
 class GalaxyRenderer:
     """
         Class containing OpenGL code
@@ -149,6 +150,7 @@ class GalaxyRenderer:
                 GLUT.glutPostRedisplay()
         else:
             time.sleep(1/self.fps)
+
 
 def startup(render_pipe, fps):
     """

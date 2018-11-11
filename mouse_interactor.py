@@ -21,15 +21,14 @@ Helper class for mouse interaction
 # or open http://www.fsf.org/licensing/licenses/gpl.html
 
 import sys
-
 from interaction_matrix import InteractionMatrix
-
 try:
     from OpenGL import GLUT
     from OpenGL import GL
 except ImportError:
     print('Error: PyOpenGL not installed properly !!')
     sys.exit()
+
 
 class MouseInteractor:
     """Connection between mouse motion and transformation matrix"""
