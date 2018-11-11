@@ -30,3 +30,5 @@ class Body:
     @property
     def weight(self):
         return self.__weight
+
+body = Body(5000)
