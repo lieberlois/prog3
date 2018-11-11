@@ -21,3 +21,4 @@
 #
 # message to signal a process to terminate
 END_MESSAGE = 'End_of_the_universe'
+G_CONSTANT = G = 6.672*10**(-11)
