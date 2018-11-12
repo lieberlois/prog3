@@ -27,8 +27,7 @@ class TestPhysicsFormula(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             phy.calc_newton(mass3, acc3)
-
-    @classmethod
+            
     def test_calc_gravitational_force(self):
         """
         This Method tests the

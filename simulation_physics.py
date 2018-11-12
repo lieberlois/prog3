@@ -25,7 +25,7 @@ import time
 import math
 import numpy as np
 
-from simulation_constants import END_MESSAGE
+from simulation_constants import END_MESSAGE, AE_CONSTANT
 
 __FPS = 60
 __DELTA_ALPHA = 0.01
@@ -34,8 +34,8 @@ __DELTA_ALPHA = 0.01
 def _move_bodies(bodies, delta_t):  # This function will be responsible for setting new positions.
     for body_index, body in enumerate(bodies):
         j = len(bodies) - body_index
-        sin_a = math.sin(__DELTA_ALPHA * j * delta_t)
-        cos_a = math.cos(__DELTA_ALPHA * j * delta_t)
+        sin_a = math.sin(__DELTA_ALPHA * j * delta_t * 0.2) # 0.2 slows this down by 1/5
+        cos_a = math.cos(__DELTA_ALPHA * j * delta_t * 0.2)
         pos_x = body[0]
         pos_y = body[1]
         body[0] = pos_x * cos_a - pos_y * sin_a
@@ -45,9 +45,19 @@ def _move_bodies(bodies, delta_t):  # This function will be responsible for sett
 
 def _initialise_bodies(nr_of_bodies):  # function creates our bodies. TODO: change this so different masses are set.
     body_array = np.zeros((nr_of_bodies, 4), dtype=np.float64)
-    for body_index in range(nr_of_bodies):
-        body_array[body_index][0] = 1/(nr_of_bodies-body_index)
-        body_array[body_index][3] = 0.5 * body_array[body_index][0]
+    body_array[0][0] = 0
+    body_array[0][1] = 0
+    body_array[0][2] = 0
+    body_array[0][3] = (500*10**7)*(1/AE_CONSTANT) #size
+    #body_array[0][4] = 0 #speed
+    #body_array[0][5] = 1.989*10**30 #mass
+    body_array[1][0] = 1
+    body_array[1][1] = 0
+    body_array[1][2] = 0
+    body_array[1][3] = (250*10**7)*(1/AE_CONSTANT) #size
+    #body_array[1][4] = 29780 #speed of earth
+    #body_array[1][5] = 5.972 * 10 ** 24 #mass
+
     return body_array
 
 
