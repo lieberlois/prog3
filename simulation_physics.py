@@ -34,8 +34,8 @@ __DELTA_ALPHA = 0.01
 def _move_bodies_circle(bodies, delta_t):  # This function will be responsible for setting new positions.
     for body_index, body in enumerate(bodies):
         j = len(bodies) - body_index
-        sin_a = math.sin(__DELTA_ALPHA * j * delta_t * 0.2) # 0.2 slows this down by 1/5
-        cos_a = math.cos(__DELTA_ALPHA * j * delta_t * 0.2)
+        sin_a = math.sin(__DELTA_ALPHA * j * delta_t * 0.5) # 0.5 slows this down by 1/2
+        cos_a = math.cos(__DELTA_ALPHA * j * delta_t * 0.5)
         pos_x = body[0]
         pos_y = body[1]
         body[0] = pos_x * cos_a - pos_y * sin_a
@@ -45,8 +45,9 @@ def _move_bodies_circle(bodies, delta_t):  # This function will be responsible f
     
 
 
-def _initialise_bodies(nr_of_bodies):  # function creates our bodies. TODO: change this so different masses are set.
-    body_array = np.zeros((nr_of_bodies, 4), dtype=np.float64)
+def _initialise_bodies():  # function creates our bodies. TODO: change this so different masses are set.
+    body_amount = 2
+    body_array = np.zeros((body_amount, 4), dtype=np.float64)
     body_array[0][0] = 0
     body_array[0][1] = 0
     body_array[0][2] = 0
@@ -63,7 +64,7 @@ def _initialise_bodies(nr_of_bodies):  # function creates our bodies. TODO: chan
     return body_array
 
 
-def startup(sim_pipe, nr_of_bodies, delta_t):
+def startup(sim_pipe, delta_t):
     """
         Initialise and continuously update a position list.
 
@@ -74,7 +75,7 @@ def startup(sim_pipe, nr_of_bodies, delta_t):
             nr_of_bodies (int): Number of bodies to be created and updated.
             delta_t (float): Simulation step width.
     """
-    bodies = _initialise_bodies(nr_of_bodies)
+    bodies = _initialise_bodies()
     while True:
         if sim_pipe.poll():
             message = sim_pipe.recv()

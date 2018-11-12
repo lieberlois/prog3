@@ -80,7 +80,7 @@ class SimulationGUI(QtWidgets.QWidget):
         self.renderer_conn, self.simulation_conn = multiprocessing.Pipe()
         self.simulation_process = \
             multiprocessing.Process(target=simulation_physics.startup,
-                                    args=(self.simulation_conn, 16, 1))
+                                    args=(self.simulation_conn, 1))
         self.render_process = \
             multiprocessing.Process(target=galaxy_renderer.startup,
                                     args=(self.renderer_conn, 60), )
