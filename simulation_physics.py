@@ -31,7 +31,7 @@ __FPS = 60
 __DELTA_ALPHA = 0.01
 
 
-def _move_bodies(bodies, delta_t):  # This function will be responsible for setting new positions.
+def _move_bodies_circle(bodies, delta_t):  # This function will be responsible for setting new positions.
     for body_index, body in enumerate(bodies):
         j = len(bodies) - body_index
         sin_a = math.sin(__DELTA_ALPHA * j * delta_t * 0.2) # 0.2 slows this down by 1/5
@@ -41,6 +41,8 @@ def _move_bodies(bodies, delta_t):  # This function will be responsible for sett
         body[0] = pos_x * cos_a - pos_y * sin_a
         body[1] = pos_x * sin_a + pos_y * cos_a
     time.sleep(1/__FPS)
+    
+    
 
 
 def _initialise_bodies(nr_of_bodies):  # function creates our bodies. TODO: change this so different masses are set.
@@ -79,5 +81,5 @@ def startup(sim_pipe, nr_of_bodies, delta_t):
             if isinstance(message, str) and message == END_MESSAGE:
                 print('simulation exiting ...')
                 sys.exit(0)
-        _move_bodies(bodies, delta_t)
+        _move_bodies_circle(bodies, delta_t)
         sim_pipe.send(bodies)  # Positions changed in moved bodies is sent to the renderer through the pipe.

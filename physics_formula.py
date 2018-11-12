@@ -37,7 +37,7 @@ def calc_gravitational_force(mass1, mass2, position1, position2):
 
     pos1 = np.array(position1)
     pos2 = np.array(position2)
-    delta_pos = np.linalg.norm((pos2[0] - pos1[0], pos2[1] - pos1[1], pos2[1] - pos1[1]))
+    delta_pos = np.linalg.norm(pos2-pos1)
     return G_CONSTANT*((mass1*mass2)/delta_pos**3)*(pos2-pos1)
 
 def stepwise_simulation(mass, position, speed, sum_forces, delta_t):
@@ -52,3 +52,4 @@ def stepwise_simulation(mass, position, speed, sum_forces, delta_t):
         delta_t: Zeitunterschied
     """
     return position + delta_t * speed + (delta_t**2/2)*(sum_forces/mass)
+
