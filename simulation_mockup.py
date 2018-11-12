@@ -46,8 +46,8 @@ def _move_bodies(bodies, delta_t):  # This function will be responsible for sett
 def _initialise_bodies(nr_of_bodies):  # function creates our bodies. TODO: change this so different masses are set.
     body_array = np.zeros((nr_of_bodies, 4), dtype=np.float64)
     for body_index in range(nr_of_bodies):
-        body_array[body_index][0] = 1/(nr_of_bodies-body_index)
-        body_array[body_index][3] = 0.5 * body_array[body_index][0]
+        body_array[body_index][0] = 0.9/(nr_of_bodies-body_index)
+        body_array[body_index][3] = 0.1 * body_array[body_index][0]
     return body_array
 
 
