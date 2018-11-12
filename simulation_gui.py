@@ -21,6 +21,7 @@ import sys
 import multiprocessing
 
 from PyQt5 import QtWidgets
+import simulation_physics
 import simulation_mockup
 import galaxy_renderer
 from simulation_constants import END_MESSAGE
@@ -28,23 +29,27 @@ from simulation_constants import END_MESSAGE
 
 class SimulationGUI(QtWidgets.QWidget):
     """
-        Widget with two buttons
+        Widget with buttons
     """
     def __init__(self):
         QtWidgets.QWidget.__init__(self)
-        self.setGeometry(0, 0, 260, 60)
+        self.setGeometry(0, 0, 350, 60)
         self.setWindowTitle('Simulation')
 
         self.start_button = QtWidgets.QPushButton('Start', self)
         self.start_button.setGeometry(10, 10, 60, 35)
         self.start_button.clicked.connect(self.start_simulation)
 
+        self.start_circle_button = QtWidgets.QPushButton('ErdeSonne', self)
+        self.start_circle_button.setGeometry(100, 10, 60, 35)
+        self.start_circle_button.clicked.connect(self.start_circle_simulation)
+
         self.stop_button = QtWidgets.QPushButton('Stop', self)
-        self.stop_button.setGeometry(100, 10, 60, 35)
+        self.stop_button.setGeometry(190, 10, 60, 35)
         self.stop_button.clicked.connect(self.stop_simulation)
 
         self.quit_button = QtWidgets.QPushButton('Quit', self)
-        self.quit_button.setGeometry(190, 10, 60, 35)
+        self.quit_button.setGeometry(280, 10, 60, 35)
         self.quit_button.clicked.connect(self.exit_application)
 
         self.renderer_conn, self.simulation_conn = None, None
@@ -56,9 +61,25 @@ class SimulationGUI(QtWidgets.QWidget):
         """
             Start simulation and render process connected with a pipe.
         """
+        self.stop_simulation()
         self.renderer_conn, self.simulation_conn = multiprocessing.Pipe()
         self.simulation_process = \
             multiprocessing.Process(target=simulation_mockup.startup,
+                                    args=(self.simulation_conn, 16, 1))
+        self.render_process = \
+            multiprocessing.Process(target=galaxy_renderer.startup,
+                                    args=(self.renderer_conn, 60), )
+        self.simulation_process.start()
+        self.render_process.start()
+
+    def start_circle_simulation(self):
+        """
+            Start simulation and render process connected with a pipe.
+        """
+        self.stop_simulation()
+        self.renderer_conn, self.simulation_conn = multiprocessing.Pipe()
+        self.simulation_process = \
+            multiprocessing.Process(target=simulation_physics.startup,
                                     args=(self.simulation_conn, 16, 1))
         self.render_process = \
             multiprocessing.Process(target=galaxy_renderer.startup,
