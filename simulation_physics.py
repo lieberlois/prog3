@@ -24,15 +24,19 @@ import sys
 import time
 import math
 import numpy as np
+import physics_formula as pf
 
-from simulation_constants import END_MESSAGE, AE_CONSTANT
+import simulation_constants as sc
 
 __FPS = 60
 __DELTA_ALPHA = 0.01
 
 
-def _move_bodies_circle(bodies, delta_t):  # This function will be responsible for setting new positions.
-    for body_index, body in enumerate(bodies):
+def _move_bodies_circle(positions, speed, mass, delta_t):  # This function will be responsible for setting new positions.
+    for pos_index, pos in enumerate(positions):
+        if pos_index == len(positions)-1:
+            break
+        """
         j = len(bodies) - body_index
         sin_a = math.sin(__DELTA_ALPHA * j * delta_t * 0.5) # 0.5 slows this down by 1/2
         cos_a = math.cos(__DELTA_ALPHA * j * delta_t * 0.5)
@@ -40,28 +44,49 @@ def _move_bodies_circle(bodies, delta_t):  # This function will be responsible f
         pos_y = body[1]
         body[0] = pos_x * cos_a - pos_y * sin_a
         body[1] = pos_x * sin_a + pos_y * cos_a
+        """
+        print(pos)
+        force = pf.calc_gravitational_force(mass[pos_index],
+                                            mass[pos_index+1],
+                                            positions[pos_index],
+                                            positions[pos_index+1])
+        print(force)
+        acceleration = pf.calc_acceleration(force, mass[pos_index])
+        current_pos = pos[pos_index]
+        next_loc = pf.next_location(mass[pos_index],
+                                    current_pos,
+                                    speed[pos_index],
+                                    acceleration,
+                                    delta_t)
+        print(next_loc)
+        # pos[pos_index] = np.array(next_loc)
     time.sleep(1/__FPS)
-    
-    
 
 
 def _initialise_bodies():  # function creates our bodies. TODO: change this so different masses are set.
     body_amount = 2
-    body_array = np.zeros((body_amount, 4), dtype=np.float64)
-    body_array[0][0] = 0
-    body_array[0][1] = 0
-    body_array[0][2] = 0
-    body_array[0][3] = (500*10**7)*(1/AE_CONSTANT) #size
-    #body_array[0][4] = 0 #speed
-    #body_array[0][5] = 1.989*10**30 #mass
-    body_array[1][0] = 1
-    body_array[1][1] = 0
-    body_array[1][2] = 0
-    body_array[1][3] = (250*10**7)*(1/AE_CONSTANT) #size
-    #body_array[1][4] = 29780 #speed of earth
-    #body_array[1][5] = 5.972 * 10 ** 24 #mass
 
-    return body_array
+    positions = np.zeros((body_amount, 4), dtype=np.float64)
+    speed = np.zeros((body_amount, 3), dtype=np.float64)
+    radius = np.zeros((body_amount), dtype=np.float64)  # currently useless
+    mass = np.zeros((body_amount), dtype=np.float64)
+    # first body
+    positions[0][0] = 0
+    positions[0][1] = 0
+    positions[0][2] = 0
+    positions[0][3] = (500*10**7)*(1/sc.AE_CONSTANT)  # size
+    speed[0][0] = 1
+    speed[0][1] = 1
+    speed[0][2] = 1
+    mass[0] = sc.SUN_WEIGHT
+    # second body
+    positions[1][0] = 1
+    positions[1][1] = 0
+    positions[1][2] = 0
+    positions[1][3] = (250*10**7)*(1/sc.AE_CONSTANT)  # size
+    mass[1] = sc.EARTH_WEIGHT
+
+    return positions, speed, radius, mass
 
 
 def startup(sim_pipe, delta_t):
@@ -72,15 +97,14 @@ def startup(sim_pipe, delta_t):
 
         Args:
             sim_pipe (multiprocessing.Pipe): Pipe to send results
-            nr_of_bodies (int): Number of bodies to be created and updated.
             delta_t (float): Simulation step width.
     """
-    bodies = _initialise_bodies()
+    positions, speed, radius, mass = _initialise_bodies()
     while True:
         if sim_pipe.poll():
             message = sim_pipe.recv()
-            if isinstance(message, str) and message == END_MESSAGE:
+            if isinstance(message, str) and message == sc.END_MESSAGE:
                 print('simulation exiting ...')
                 sys.exit(0)
-        _move_bodies_circle(bodies, delta_t)
-        sim_pipe.send(bodies)  # Positions changed in moved bodies is sent to the renderer through the pipe.
+        _move_bodies_circle(positions, speed, mass, delta_t)
+        sim_pipe.send(positions)  # Positions changed in moved bodies is sent to the renderer through the pipe.
