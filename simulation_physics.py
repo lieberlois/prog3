@@ -36,55 +36,45 @@ def _move_bodies_circle(positions, speed, mass, delta_t):  # This function will 
     for pos_index, pos in enumerate(positions):
         if pos_index == len(positions)-1:
             break
-        """
-        j = len(bodies) - body_index
-        sin_a = math.sin(__DELTA_ALPHA * j * delta_t * 0.5) # 0.5 slows this down by 1/2
-        cos_a = math.cos(__DELTA_ALPHA * j * delta_t * 0.5)
-        pos_x = body[0]
-        pos_y = body[1]
-        body[0] = pos_x * cos_a - pos_y * sin_a
-        body[1] = pos_x * sin_a + pos_y * cos_a
-        """
-        print(pos)
         force = pf.calc_gravitational_force(mass[pos_index],
                                             mass[pos_index+1],
                                             positions[pos_index],
                                             positions[pos_index+1])
-        print(force)
         acceleration = pf.calc_acceleration(force, mass[pos_index])
-        current_pos = pos[pos_index]
+        current_pos = positions[pos_index]
+        #print(current_pos)
         next_loc = pf.next_location(mass[pos_index],
                                     current_pos,
                                     speed[pos_index],
                                     acceleration,
                                     delta_t)
-        print(next_loc)
-        # pos[pos_index] = np.array(next_loc)
+        positions[pos_index] = next_loc
+        #print(positions[pos_index])
     time.sleep(1/__FPS)
 
 
 def _initialise_bodies():  # function creates our bodies. TODO: change this so different masses are set.
     body_amount = 2
 
-    positions = np.zeros((body_amount, 4), dtype=np.float64)
+    positions = np.zeros((body_amount, 3), dtype=np.float64)
     speed = np.zeros((body_amount, 3), dtype=np.float64)
-    radius = np.zeros((body_amount), dtype=np.float64)  # currently useless
+    radius = np.zeros((body_amount), dtype=np.float64)
     mass = np.zeros((body_amount), dtype=np.float64)
     # first body
-    positions[0][0] = 0
+    positions[0][0] = 20
     positions[0][1] = 0
     positions[0][2] = 0
-    positions[0][3] = (500*10**7)*(1/sc.AE_CONSTANT)  # size
-    speed[0][0] = 1
-    speed[0][1] = 1
-    speed[0][2] = 1
-    mass[0] = sc.SUN_WEIGHT
+    radius[0] = (250*10**7)*(1/sc.AE_CONSTANT)  # size
+    mass[0] = sc.EARTH_WEIGHT
     # second body
-    positions[1][0] = 1
+    positions[1][0] = 0
     positions[1][1] = 0
     positions[1][2] = 0
-    positions[1][3] = (250*10**7)*(1/sc.AE_CONSTANT)  # size
-    mass[1] = sc.EARTH_WEIGHT
+    radius[1] = (500*10**7)*(1/sc.AE_CONSTANT)  # size
+    speed[1][0] = 1
+    speed[1][1] = 1
+    speed[1][2] = 1
+    mass[1] = sc.SUN_WEIGHT
 
     return positions, speed, radius, mass
 
@@ -107,4 +97,6 @@ def startup(sim_pipe, delta_t):
                 print('simulation exiting ...')
                 sys.exit(0)
         _move_bodies_circle(positions, speed, mass, delta_t)
-        sim_pipe.send(positions)  # Positions changed in moved bodies is sent to the renderer through the pipe.
+        pos_with_radius = np.c_[positions, radius]
+        #print(pos_with_radius)
+        sim_pipe.send(pos_with_radius)  # Positions changed in moved bodies is sent to the renderer through the pipe.
