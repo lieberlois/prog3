@@ -51,3 +51,22 @@ def next_location(mass, position, speed, acceleration, delta_t):
         delta_t: Zeitunterschied
     """
     return (position + delta_t * speed + (delta_t**2/2)*acceleration)
+
+def calc_mass_focus(ignore, masses, positions):
+    """
+    Berechnet die Position des Massenfokuspunktes im Raum.
+
+    params:
+        ignore: Index des zu ignorierenden Planets
+        masses: Liste aller Massen
+        positions: Liste aller Positionen
+    """
+    total_mass = np.sum(masses)
+    
+    tmp_loc = np.zeros(3, dtype=np.float64)
+    
+    for i in range(masses.size):
+        if i == ignore:
+            continue
+        tmp_loc = tmp_loc + (masses[i] * positions[i])    
+    return (1/(total_mass - masses[i]))*tmp_loc

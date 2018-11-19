@@ -21,11 +21,11 @@
 #
 # message to signal a process to terminate
 END_MESSAGE = 'End_of_the_universe'
-G_CONSTANT = 6.672 * 10**-11
+G_CONSTANT = 6.673 * 10**-11
 AE_CONSTANT = 149597870700
 
 # Earth
-EARTH_WEIGHT = 5.97 * 10**24
+EARTH_WEIGHT = 5.972 * 10**24
 EARTH_SPEED = 29780
 
 # Sun
