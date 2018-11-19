@@ -33,6 +33,7 @@ __DELTA_ALPHA = 0.01
 
 def _move_bodies(bodies, delta_t):  # This function will be responsible for setting new positions.
     for body_index, body in enumerate(bodies):
+        print(body)
         j = len(bodies) - body_index
         sin_a = math.sin(__DELTA_ALPHA * j * delta_t)
         cos_a = math.cos(__DELTA_ALPHA * j * delta_t)

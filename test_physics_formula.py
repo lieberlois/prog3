@@ -12,6 +12,7 @@ class TestPhysicsFormula(unittest.TestCase):
     This class tests all methods in physics_formula.py
     """
     def test_calc_newton(self):
+        # TODO: remake
         """
         This Method tests the
         calc_newton()-function in physics_formula.py
@@ -27,7 +28,7 @@ class TestPhysicsFormula(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             phy.calc_newton(mass3, acc3)
-            
+
     def test_calc_gravitational_force(self):
         """
         This Method tests the
