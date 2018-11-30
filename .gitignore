@@ -1,0 +1,5 @@
+.ipynb_checkpoints/
+.spyproject/
+venv/
+.idea/
+__pychace__/
