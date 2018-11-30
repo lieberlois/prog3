@@ -38,25 +38,34 @@ def _move_bodies_circle(positions, speed, mass, delta_t):  # This function will 
     body = 1
     mass_foc_pos = positions[0]
     mass_foc_weight = mass[0]
-    grav_force = pf.calc_gravitational_force(mass[body], mass_foc_weight, positions[body], mass_foc_pos)
+    grav_force = pf.calc_gravitational_force(mass[body],
+                                             mass_foc_weight,
+                                             positions[body], mass_foc_pos)
     accel = pf.calc_acceleration(grav_force, mass[body])
-    speed[body] = speed[body] + accel*timestep
-    positions[body] = pf.next_location(mass[body], positions[body], speed[body], accel, timestep)
 
-    print(np.linalg.norm(positions[body]))
-    
+    speed[body] = speed[body] + accel*timestep
+    positions[body] = pf.next_location(mass[body],
+                                       positions[body],
+                                       speed[body], accel, timestep)
+
+    # print(np.linalg.norm(positions[body]))
+
     time.sleep(1/__FPS)
 
 
-def _initialise_bodies(): 
+def _initialise_bodies(nr_of_bodies):
+    # TODO: initialise bodies based on nr_of_bodies
+
+    print(nr_of_bodies)
+
     body_amount = 2
     positions = np.zeros((body_amount, 3), dtype=np.float64)
     speed = np.zeros((body_amount, 3), dtype=np.float64)
     radius = np.zeros((body_amount), dtype=np.float64)
     mass = np.zeros((body_amount), dtype=np.float64)
 
-    positions[0] = np.array([0,0,0]) 
-    speed[0] = [0,0,0]
+    positions[0] = np.array([0, 0, 0])
+    speed[0] = [0, 0, 0]
     mass[0] = 1.989*10**30
     radius[0] = 6955080000
 
@@ -68,7 +77,7 @@ def _initialise_bodies():
     return positions, speed, radius, mass
 
 
-def startup(sim_pipe, delta_t):
+def startup(sim_pipe, delta_t, nr_of_bodies):
     """
         Initialise and continuously update a position list.
 
@@ -78,7 +87,7 @@ def startup(sim_pipe, delta_t):
             sim_pipe (multiprocessing.Pipe): Pipe to send results
             delta_t (float): Simulation step width.
     """
-    positions, speed, radius, mass = _initialise_bodies()
+    positions, speed, radius, mass = _initialise_bodies(nr_of_bodies)
     while True:
         if sim_pipe.poll():
             message = sim_pipe.recv()
@@ -87,5 +96,6 @@ def startup(sim_pipe, delta_t):
                 sys.exit(0)
         _move_bodies_circle(positions, speed, mass, delta_t)
         pos_with_radius = np.c_[positions, radius]
-        #print(pos_with_radius)
-        sim_pipe.send(pos_with_radius * (1/sc.AE_CONSTANT))  # Positions changed in moved bodies is sent to the renderer through the pipe.
+        # print(pos_with_radius)
+        sim_pipe.send(pos_with_radius * (1/sc.AE_CONSTANT))
+        # Positions changed in movedbodies is sent to renderer through the pipe
