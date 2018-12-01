@@ -22,7 +22,6 @@
 #
 import sys
 import time
-import math
 import numpy as np
 import physics_formula as pf
 
@@ -36,18 +35,17 @@ def _move_bodies_circle(positions, speed, mass, delta_t):
     # This function will be responsible for setting new positions.
     timestep = 365*24*delta_t
 
-    body = 1
-    mass_foc_pos = positions[0]
-    mass_foc_weight = mass[0]
-    grav_force = pf.calc_gravitational_force(mass[body],
-                                             mass_foc_weight,
-                                             positions[body], mass_foc_pos)
-    accel = pf.calc_acceleration(grav_force, mass[body])
-
-    speed[body] = speed[body] + accel*timestep
-    positions[body] = pf.next_location(mass[body],
-                                       positions[body],
-                                       speed[body], accel, timestep)
+    for i in range(mass.size):
+        mass_foc_pos = pf.calc_mass_focus_ignore(i, mass, positions)
+        mass_foc_weight = np.sum(mass) - mass[i]
+        grav_force = pf.calc_gravitational_force(mass[i],
+                                                 mass_foc_weight,
+                                                 positions[i],
+                                                 mass_foc_pos)
+        accel = pf.calc_acceleration(grav_force, mass[i])
+        speed[i] = pf.calc_speed_direction(i, mass, positions)
+        positions[i] = pf.next_location(mass[i], positions[i], speed[i],
+                                        accel, timestep)
 
     time.sleep(1/__FPS)
 
@@ -55,7 +53,7 @@ def _move_bodies_circle(positions, speed, mass, delta_t):
 def _initialise_bodies(nr_of_bodies):
     # TODO: initialise bodies based on nr_of_bodies
 
-    body_amount = 2
+    body_amount = 3
     positions = np.zeros((body_amount, 3), dtype=np.float64)
     speed = np.zeros((body_amount, 3), dtype=np.float64)
     radius = np.zeros((body_amount), dtype=np.float64)
@@ -64,12 +62,17 @@ def _initialise_bodies(nr_of_bodies):
     positions[0] = np.array([0, 0, 0])
     speed[0] = [0, 0, 0]
     mass[0] = 1.989*10**30
-    radius[0] = 6955080000
+    radius[0] = 10000000000
 
     positions[1] = np.array([1.496*10**11, 0, 0])
     speed[1] = np.array([0, 29780, 0])
     mass[1] = 5.972*10**24
     radius[1] = 6955080000
+
+    positions[2] = np.array([1.496*10**9, 1.496*10**9, 0])
+    speed[2] = np.array([0, 35678, 0])
+    mass[2] = 5.972*10**20
+    radius[2] = 6955080000
 
     return positions, speed, radius, mass
 
