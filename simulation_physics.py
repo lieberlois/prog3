@@ -32,7 +32,8 @@ __FPS = 60
 __DELTA_ALPHA = 0.01
 
 
-def _move_bodies_circle(positions, speed, mass, delta_t):  # This function will be responsible for setting new positions.
+def _move_bodies_circle(positions, speed, mass, delta_t):
+    # This function will be responsible for setting new positions.
     timestep = 365*24*delta_t
 
     body = 1
@@ -48,15 +49,11 @@ def _move_bodies_circle(positions, speed, mass, delta_t):  # This function will 
                                        positions[body],
                                        speed[body], accel, timestep)
 
-    # print(np.linalg.norm(positions[body]))
-
     time.sleep(1/__FPS)
 
 
 def _initialise_bodies(nr_of_bodies):
     # TODO: initialise bodies based on nr_of_bodies
-
-    print(nr_of_bodies)
 
     body_amount = 2
     positions = np.zeros((body_amount, 3), dtype=np.float64)

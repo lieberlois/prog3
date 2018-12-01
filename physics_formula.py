@@ -2,6 +2,7 @@
 Modul zur physikalischen Berechnung von Kraeften
 """
 import numpy as np
+import math
 from simulation_constants import G_CONSTANT
 
 
@@ -35,8 +36,8 @@ def calc_gravitational_force(mass1, mass2, pos1, pos2):
         Gravitationskraft als Vektor
     """
 
-    delta_pos = np.linalg.norm(pos2-pos1)
-    return G_CONSTANT*((mass1*mass2)/delta_pos**3)*(pos2-pos1)
+    delta_pos = np.linalg.norm(pos2 - pos1)
+    return G_CONSTANT * ((mass1 * mass2)/delta_pos**3) * (pos2 - pos1)
 
 
 def next_location(mass, position, speed, acceleration, delta_t):
@@ -52,7 +53,32 @@ def next_location(mass, position, speed, acceleration, delta_t):
     """
     return (position + delta_t * speed + (delta_t**2/2)*acceleration)
 
-def calc_mass_focus(ignore, masses, positions):
+
+def total_mass(masses):
+    """
+    Berechnet die Gesamtmasse M aller Körper
+
+    params:
+        masses: Liste aller Massen
+    """
+    return np.sum(masses)
+
+
+def calc_mass_focus(masses, positions):
+    """
+    Berechnet die Position des Massen-Schwerpunkts
+
+    params:
+        masses: Liste aller Massen
+        positions: Liste aller Positions
+    """
+    tmp_focus = np.zeros(3, dtype=np.float64)
+    for i in range(masses.size):
+        tmp_focus = tmp_focus + masses[i] * positions[i]
+    return (1/total_mass(masses)) * tmp_focus
+
+
+def calc_mass_focus_ignore(ignore, masses, positions):
     """
     Berechnet die Position des Massenfokuspunktes im Raum.
 
@@ -61,12 +87,59 @@ def calc_mass_focus(ignore, masses, positions):
         masses: Liste aller Massen
         positions: Liste aller Positionen
     """
-    total_mass = np.sum(masses)
-    
     tmp_loc = np.zeros(3, dtype=np.float64)
-    
+
     for i in range(masses.size):
         if i == ignore:
             continue
-        tmp_loc = tmp_loc + (masses[i] * positions[i])    
-    return (1/(total_mass - masses[i]))*tmp_loc
+        tmp_loc = tmp_loc + (masses[i] * positions[i])
+    return (1/(total_mass(masses) - masses[i]))*tmp_loc
+
+
+def calc_momentum(masses, speeds):
+    """
+    Berechnet Gesamtimpuls des Systems
+
+    params:
+        masses: Liste aller Massen
+        speeds: Liste aller Geschwindigkeiten
+    """
+    tmp_momentum = np.zeros(3, dtype=np.float64)
+    for i in range(masses.size):
+        tmp_momentum = tmp_momentum + masses[i]*speeds[i]
+    return tmp_momentum
+
+
+def calc_absolute_speed(body_index, masses, positions):
+    """
+    Berechnet den Betrag der Geschwindigkeit für den Körper body_index
+
+    params:
+        body_index: Index des gewünschten Körpers
+        masses: Liste aller Massen
+        positions: Liste aller Positionen
+    """
+    my_mass, my_position = masses[body_index], positions[body_index]
+    mass_focus_ignored = calc_mass_focus_ignore(body_index, masses, positions)
+
+    r = np.linalg.norm(my_position - mass_focus_ignored)
+    return ((total_mass(masses) - my_mass) /
+            total_mass(masses))*math.sqrt(G_CONSTANT*total_mass(masses)/r)
+
+
+def calc_speed_direction(body_index, masses, positions):
+    """
+    Berechnet die Richtung der Geschwindigkeit für den Körper body_index
+
+    params:
+        body_index: Index des gewünschten Körpers
+        masses: Liste aller Massen
+        positions: Liste aller Positionen
+    """
+    my_absolute_speed = calc_absolute_speed(body_index, masses, positions)
+    my_position = positions[body_index]
+    mass_focus_ignored = calc_mass_focus_ignore(body_index, masses, positions)
+
+    z = np.array([0, 0, 1])
+    cross_product = np.cross((my_position-mass_focus_ignored), z)
+    return cross_product / np.linalg.norm(cross_product) * my_absolute_speed
