@@ -44,14 +44,13 @@ def _move_bodies_circle(positions, speed, mass, delta_t):
                                                  mass_foc_pos)
         accel = pf.calc_acceleration(grav_force, mass[i])
         speed[i] = pf.calc_speed_direction(i, mass, positions)
-        positions[i] = pf.next_location(mass[i], positions[i], speed[i],
+        positions[i] = pf.next_location(positions[i], speed[i],
                                         accel, timestep)
 
     time.sleep(1/__FPS)
 
 
 def _initialise_bodies(nr_of_bodies):
-    # TODO: initialise bodies based on nr_of_bodies
 
     body_amount = 4
     positions = np.zeros((body_amount, 3), dtype=np.float64)
@@ -83,7 +82,7 @@ def _initialise_bodies(nr_of_bodies):
     mass[3] = sc.EARTH_WEIGHT
     radius[3] = 6955080000/2
 
-    
+
 
     return positions, speed, radius, mass
 

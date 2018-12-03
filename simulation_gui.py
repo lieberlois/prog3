@@ -49,11 +49,19 @@ class SimulationGUI(QtWidgets.QMainWindow):
         """
         self.stop_simulation()
         nr_of_planets = self.ui.nrPlanetSpinBox.value()
+        mass_lim = (float(str(self.ui.minMassLineEdit.text())), \
+        			   float(str(self.ui.maxMassLineEdit.text())))
+        dis_lim = (float(str(self.ui.minDistanceLineEdit.text())), \
+           				   float(str(self.ui.maxDistanceLineEdit.text())))
+        rad_lim = (float(str(self.ui.minRadiusLineEdit.text())), \
+        				 float(str(self.ui.maxRadiusLineEdit.text())))
+
         self.renderer_conn, self.simulation_conn = multiprocessing.Pipe()
         self.simulation_process = \
             multiprocessing.Process(target=simulation_physics.startup,
                                     args=(self.simulation_conn,
-                                          1, nr_of_planets))
+                                          1, nr_of_planets,
+                                          mass_lim, dis_lim, rad_lim))
         self.render_process = \
             multiprocessing.Process(target=galaxy_renderer.startup,
                                     args=(self.renderer_conn, 60), )

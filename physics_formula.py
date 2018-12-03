@@ -1,8 +1,9 @@
 """
 Modul zur physikalischen Berechnung von Kraeften
 """
-import numpy as np
+
 import math
+import numpy as np
 from simulation_constants import G_CONSTANT
 
 
@@ -40,18 +41,17 @@ def calc_gravitational_force(mass1, mass2, pos1, pos2):
     return G_CONSTANT * ((mass1 * mass2)/delta_pos**3) * (pos2 - pos1)
 
 
-def next_location(mass, position, speed, acceleration, delta_t):
+def next_location(position, speed, acceleration, delta_t):
     """
     Berechnet die neue Position eines Koerpers nach einer bestimmten Zeit.
 
     params:
-        mass: Masse des Koerpers
         position: Position des Koerpers
         speed: Geschwindigkeit des Koerpers
         sum_forces: Summe aller wirkenden Kraefte
         delta_t: Zeitunterschied
     """
-    return (position + delta_t * speed + (delta_t**2/2)*acceleration)
+    return position + delta_t * speed + (delta_t**2/2)*acceleration
 
 
 def total_mass(masses):
@@ -122,9 +122,9 @@ def calc_absolute_speed(body_index, masses, positions):
     my_mass, my_position = masses[body_index], positions[body_index]
     mass_focus_ignored = calc_mass_focus_ignore(body_index, masses, positions)
 
-    r = np.linalg.norm(my_position - mass_focus_ignored)
+    r_vector = np.linalg.norm(my_position - mass_focus_ignored)
     return ((total_mass(masses) - my_mass) /
-            total_mass(masses))*math.sqrt(G_CONSTANT*total_mass(masses)/r)
+            total_mass(masses))*math.sqrt(G_CONSTANT*total_mass(masses)/r_vector)
 
 
 def calc_speed_direction(body_index, masses, positions):
@@ -140,6 +140,6 @@ def calc_speed_direction(body_index, masses, positions):
     my_position = positions[body_index]
     mass_focus_ignored = calc_mass_focus_ignore(body_index, masses, positions)
 
-    z = np.array([0, 0, 1])
-    cross_product = np.cross((my_position-mass_focus_ignored), z)
+    z_vector = np.array([0, 0, 1])
+    cross_product = np.cross((my_position-mass_focus_ignored), z_vector)
     return cross_product / np.linalg.norm(cross_product) * my_absolute_speed

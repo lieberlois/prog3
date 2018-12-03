@@ -22,9 +22,9 @@
 #
 import sys
 import time
+import random as rand
 import numpy as np
 import physics_formula as pf
-import random as rand
 
 import simulation_constants as sc
 
@@ -45,22 +45,20 @@ def _move_bodies_circle(positions, speed, mass, delta_t):
                                                  mass_foc_pos)
         accel = pf.calc_acceleration(grav_force, mass[i])
         speed[i] = pf.calc_speed_direction(i, mass, positions)
-        positions[i] = pf.next_location(mass[i], positions[i], speed[i],
+        positions[i] = pf.next_location(positions[i], speed[i],
                                         accel, timestep)
 
     time.sleep(1/__FPS)
 
 
-def _initialise_bodies(nr_of_bodies):
-    # TODO: initialise bodies based on nr_of_bodies
+def _initialise_bodies(nr_of_bodies, mass_lim, dis_lim, rad_lim):
+    min_mass = mass_lim[0]
+    max_mass = mass_lim[1]
+    min_radius = rad_lim[0]
+    max_radius = rad_lim[1]
+    min_distance = dis_lim[0]
+    max_distance = dis_lim[1]
 
-    min_mass = 1.00*10**15
-    max_mass = 1.00*10**27
-    min_radius = 1000000000
-    max_radius = 4000000000
-    min_distance = 10000000000
-    max_distance = sc.AE_CONSTANT #TODO: UI!
-    
     black_hole_weight = 2.00*10**30
 
     positions = np.zeros((nr_of_bodies+1, 3), dtype=np.float64)
@@ -71,21 +69,21 @@ def _initialise_bodies(nr_of_bodies):
     #Black Hole
     positions[0] = np.array([0, 0, 0])
     speed[0] = [0, 0, 0]
-    mass[0] = 2.00*10**30
+    mass[0] = black_hole_weight
     radius[0] = 5000000000
 
-    for i in range(1,nr_of_bodies+1):
+    for i in range(1, nr_of_bodies+1):
         #Black Hole
-        positions[i] = np.array([rand.uniform(1.0*10**10, max_distance), 0, 0])
+        positions[i] = np.array([rand.uniform(min_distance, max_distance), 0, 0])
         speed[i] = [0, pf.calc_absolute_speed(i, mass, positions), 0]
         mass[i] = rand.uniform(min_mass, max_mass)
-        radius[i] = rand.uniform(min_radius, max_radius)	
+        radius[i] = rand.uniform(min_radius, max_radius)
 
 
     return positions, speed, radius, mass
 
 
-def startup(sim_pipe, delta_t, nr_of_bodies):
+def startup(sim_pipe, delta_t, nr_of_bodies, mass_lim, dis_lim, rad_lim):
     """
         Initialise and continuously update a position list.
 
@@ -96,9 +94,7 @@ def startup(sim_pipe, delta_t, nr_of_bodies):
             delta_t (float): Simulation step width.
     """
 
-    max_distance = sc.AE_CONSTANT #TODO: UI!
-
-    positions, speed, radius, mass = _initialise_bodies(nr_of_bodies)
+    positions, speed, radius, mass = _initialise_bodies(nr_of_bodies, mass_lim, dis_lim, rad_lim)
     while True:
         if sim_pipe.poll():
             message = sim_pipe.recv()
@@ -108,5 +104,5 @@ def startup(sim_pipe, delta_t, nr_of_bodies):
         _move_bodies_circle(positions, speed, mass, delta_t)
         pos_with_radius = np.c_[positions, radius]
         # print(pos_with_radius)
-        sim_pipe.send(pos_with_radius * (1/(max_distance)))
+        sim_pipe.send(pos_with_radius * (1/dis_lim[1]))
         # Positions changed in movedbodies is sent to renderer through the pipe
