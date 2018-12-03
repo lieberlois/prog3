@@ -19,6 +19,8 @@
 #
 import sys
 import multiprocessing
+import time
+
 
 from PyQt5 import QtWidgets, uic
 import simulation_physics
@@ -67,8 +69,10 @@ class SimulationGUI(QtWidgets.QMainWindow):
         self.render_process = \
             multiprocessing.Process(target=galaxy_renderer.startup,
                                     args=(self.renderer_conn, 60), )
+
+        #self.close()
         self.simulation_process.start()
-        self.render_process.start()
+        self.render_process.start()   
 
     def stop_simulation(self):
         """
