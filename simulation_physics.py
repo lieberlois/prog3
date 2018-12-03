@@ -22,49 +22,64 @@
 #
 import sys
 import time
-import math
+import random as rand
 import numpy as np
+import physics_formula as pf
 
-from simulation_constants import END_MESSAGE, AE_CONSTANT
+import simulation_constants as sc
 
 __FPS = 60
 __DELTA_ALPHA = 0.01
 
 
-def _move_bodies_circle(bodies, delta_t):  # This function will be responsible for setting new positions.
-    for body_index, body in enumerate(bodies):
-        j = len(bodies) - body_index
-        sin_a = math.sin(__DELTA_ALPHA * j * delta_t * 0.5) # 0.5 slows this down by 1/2
-        cos_a = math.cos(__DELTA_ALPHA * j * delta_t * 0.5)
-        pos_x = body[0]
-        pos_y = body[1]
-        body[0] = pos_x * cos_a - pos_y * sin_a
-        body[1] = pos_x * sin_a + pos_y * cos_a
-    time.sleep(1/__FPS)
-    
-    
+def _move_bodies_circle(positions, speed, mass, delta_t):
+    # This function will be responsible for setting new positions.
+    timestep = delta_t*1000
+
+    for i in range(mass.size):
+        mass_foc_pos = pf.calc_mass_focus_ignore(i, mass, positions)
+        mass_foc_weight = np.sum(mass) - mass[i]
+        grav_force = pf.calc_gravitational_force(mass[i],
+                                                 mass_foc_weight,
+                                                 positions[i],
+                                                 mass_foc_pos)
+        accel = pf.calc_acceleration(grav_force, mass[i])
+        speed[i] = pf.calc_speed_direction(i, mass, positions)
+        positions[i] = pf.next_location(positions[i], speed[i],
+                                        accel, timestep)
+
+def _initialise_bodies(nr_of_bodies, mass_lim, dis_lim, rad_lim, black_weight):
+    min_mass = mass_lim[0]
+    max_mass = mass_lim[1]
+    min_radius = rad_lim[0]
+    max_radius = rad_lim[1]
+    min_distance = dis_lim[0]
+    max_distance = dis_lim[1]
+
+    black_hole_weight = black_weight
+
+    positions = np.zeros((nr_of_bodies+1, 3), dtype=np.float64)
+    speed = np.zeros((nr_of_bodies+1, 3), dtype=np.float64)
+    radius = np.zeros((nr_of_bodies+1), dtype=np.float64)
+    mass = np.zeros((nr_of_bodies+1), dtype=np.float64)
+
+    #Black Hole
+    positions[0] = np.array([0, 0, 0])
+    speed[0] = [0, 0, 0]
+    mass[0] = black_hole_weight
+    radius[0] = 5000000000
+
+    for i in range(1, nr_of_bodies+1):
+        positions[i] = np.array([rand.uniform(min_distance, max_distance), 0, 0])
+        speed[i] = [0, pf.calc_absolute_speed(i, mass, positions), 0]
+        mass[i] = rand.uniform(min_mass, max_mass)
+        radius[i] = rand.uniform(min_radius, max_radius)
 
 
-def _initialise_bodies():  # function creates our bodies. TODO: change this so different masses are set.
-    body_amount = 2
-    body_array = np.zeros((body_amount, 4), dtype=np.float64)
-    body_array[0][0] = 0
-    body_array[0][1] = 0
-    body_array[0][2] = 0
-    body_array[0][3] = (500*10**7)*(1/AE_CONSTANT) #size
-    #body_array[0][4] = 0 #speed
-    #body_array[0][5] = 1.989*10**30 #mass
-    body_array[1][0] = 1
-    body_array[1][1] = 0
-    body_array[1][2] = 0
-    body_array[1][3] = (250*10**7)*(1/AE_CONSTANT) #size
-    #body_array[1][4] = 29780 #speed of earth
-    #body_array[1][5] = 5.972 * 10 ** 24 #mass
-
-    return body_array
+    return positions, speed, radius, mass
 
 
-def startup(sim_pipe, delta_t):
+def startup(sim_pipe, delta_t, nr_of_bodies, mass_lim, dis_lim, rad_lim, black_weight):
     """
         Initialise and continuously update a position list.
 
@@ -72,15 +87,18 @@ def startup(sim_pipe, delta_t):
 
         Args:
             sim_pipe (multiprocessing.Pipe): Pipe to send results
-            nr_of_bodies (int): Number of bodies to be created and updated.
             delta_t (float): Simulation step width.
     """
-    bodies = _initialise_bodies()
+
+    positions, speed, radius, mass = _initialise_bodies(nr_of_bodies, mass_lim, dis_lim, rad_lim, black_weight)
     while True:
         if sim_pipe.poll():
             message = sim_pipe.recv()
-            if isinstance(message, str) and message == END_MESSAGE:
+            if isinstance(message, str) and message == sc.END_MESSAGE:
                 print('simulation exiting ...')
                 sys.exit(0)
-        _move_bodies_circle(bodies, delta_t)
-        sim_pipe.send(bodies)  # Positions changed in moved bodies is sent to the renderer through the pipe.
+        _move_bodies_circle(positions, speed, mass, delta_t)
+        pos_with_radius = np.c_[positions, radius]
+        # print(pos_with_radius)
+        sim_pipe.send(pos_with_radius * (1/dis_lim[1]))
+        # Positions changed in movedbodies is sent to renderer through the pipe

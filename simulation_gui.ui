@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>795</width>
+    <height>461</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <property name="autoFillBackground">
+    <bool>true</bool>
+   </property>
+   <widget class="QWidget" name="gridLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>10</y>
+      <width>791</width>
+      <height>431</height>
+     </rect>
+    </property>
+    <layout class="QGridLayout" name="gridLayout">
+     <property name="verticalSpacing">
+      <number>6</number>
+     </property>
+     <item row="0" column="0">
+      <widget class="QLabel" name="nrPlanetLabel">
+       <property name="text">
+        <string>Number of planets:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="13" column="0">
+      <widget class="QPushButton" name="startButton">
+       <property name="text">
+        <string>Start</string>
+       </property>
+      </widget>
+     </item>
+     <item row="13" column="1">
+      <widget class="QPushButton" name="quitButton">
+       <property name="text">
+        <string>Quit</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QSpinBox" name="nrPlanetSpinBox">
+       <property name="maximum">
+        <number>9999</number>
+       </property>
+       <property name="value">
+        <number>5</number>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="0">
+      <widget class="QLabel" name="minMassLabel">
+       <property name="text">
+        <string>Minimal Mass</string>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="0">
+      <widget class="QLabel" name="maxMassLabel">
+       <property name="text">
+        <string>Maximal Mass</string>
+       </property>
+      </widget>
+     </item>
+     <item row="8" column="0">
+      <widget class="QLabel" name="minRadiusLabel">
+       <property name="text">
+        <string>Minimal Radius</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="minDistanceLabel">
+       <property name="text">
+        <string>Minimal Distance</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="maxDistanceLabel">
+       <property name="text">
+        <string>Maximal Distance</string>
+       </property>
+      </widget>
+     </item>
+     <item row="9" column="0">
+      <widget class="QLabel" name="maxRadiusLabel">
+       <property name="text">
+        <string>Maximal Radius</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0">
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item row="5" column="1">
+      <widget class="QLineEdit" name="minMassLineEdit">
+       <property name="text">
+        <string>1000000000000000</string>
+       </property>
+      </widget>
+     </item>
+     <item row="10" column="1">
+      <spacer name="horizontalSpacer_6">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item row="10" column="0">
+      <spacer name="horizontalSpacer_5">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item row="7" column="1">
+      <spacer name="horizontalSpacer_4">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item row="7" column="0">
+      <spacer name="horizontalSpacer_3">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item row="1" column="1">
+      <spacer name="horizontalSpacer_8">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item row="1" column="0">
+      <spacer name="horizontalSpacer_7">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item row="4" column="1">
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLineEdit" name="minDistanceLineEdit">
+       <property name="text">
+        <string>10000000000</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QLineEdit" name="maxDistanceLineEdit">
+       <property name="text">
+        <string>149597870700</string>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="1">
+      <widget class="QLineEdit" name="maxMassLineEdit">
+       <property name="text">
+        <string>1000000000000000000000000000</string>
+       </property>
+      </widget>
+     </item>
+     <item row="8" column="1">
+      <widget class="QLineEdit" name="minRadiusLineEdit">
+       <property name="text">
+        <string>1000000000</string>
+       </property>
+      </widget>
+     </item>
+     <item row="9" column="1">
+      <widget class="QLineEdit" name="maxRadiusLineEdit">
+       <property name="text">
+        <string>4000000000</string>
+       </property>
+      </widget>
+     </item>
+     <item row="11" column="0">
+      <widget class="QLabel" name="blackHoleWeightLabel">
+       <property name="text">
+        <string>Black Hole Weight</string>
+       </property>
+      </widget>
+     </item>
+     <item row="11" column="1">
+      <widget class="QLineEdit" name="blackHoleWeightLineEdit">
+       <property name="text">
+        <string>2000000000000000000000000000000</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
