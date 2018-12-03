@@ -24,6 +24,7 @@ import sys
 import time
 import numpy as np
 import physics_formula as pf
+import random as rand
 
 import simulation_constants as sc
 
@@ -33,7 +34,7 @@ __DELTA_ALPHA = 0.01
 
 def _move_bodies_circle(positions, speed, mass, delta_t):
     # This function will be responsible for setting new positions.
-    timestep = 365*24*delta_t
+    timestep = delta_t*60*24
 
     for i in range(mass.size):
         mass_foc_pos = pf.calc_mass_focus_ignore(i, mass, positions)
@@ -53,26 +54,33 @@ def _move_bodies_circle(positions, speed, mass, delta_t):
 def _initialise_bodies(nr_of_bodies):
     # TODO: initialise bodies based on nr_of_bodies
 
-    body_amount = 3
-    positions = np.zeros((body_amount, 3), dtype=np.float64)
-    speed = np.zeros((body_amount, 3), dtype=np.float64)
-    radius = np.zeros((body_amount), dtype=np.float64)
-    mass = np.zeros((body_amount), dtype=np.float64)
+    min_mass = 1.00*10**15
+    max_mass = 1.00*10**27
+    min_radius = 1000000000
+    max_radius = 4000000000
+    min_distance = 10000000000
+    max_distance = sc.AE_CONSTANT #TODO: UI!
+    
+    black_hole_weight = 2.00*10**30
 
+    positions = np.zeros((nr_of_bodies+1, 3), dtype=np.float64)
+    speed = np.zeros((nr_of_bodies+1, 3), dtype=np.float64)
+    radius = np.zeros((nr_of_bodies+1), dtype=np.float64)
+    mass = np.zeros((nr_of_bodies+1), dtype=np.float64)
+
+    #Black Hole
     positions[0] = np.array([0, 0, 0])
     speed[0] = [0, 0, 0]
-    mass[0] = 1.989*10**30
-    radius[0] = 10000000000
+    mass[0] = 2.00*10**30
+    radius[0] = 5000000000
 
-    positions[1] = np.array([1.496*10**11, 0, 0])
-    speed[1] = np.array([0, 29780, 0])
-    mass[1] = 5.972*10**24
-    radius[1] = 6955080000
+    for i in range(1,nr_of_bodies+1):
+        #Black Hole
+        positions[i] = np.array([rand.uniform(1.0*10**10, max_distance), 0, 0])
+        speed[i] = [0, pf.calc_absolute_speed(i, mass, positions), 0]
+        mass[i] = rand.uniform(min_mass, max_mass)
+        radius[i] = rand.uniform(min_radius, max_radius)	
 
-    positions[2] = np.array([1.496*10**9, 1.496*10**9, 0])
-    speed[2] = np.array([0, 35678, 0])
-    mass[2] = 5.972*10**20
-    radius[2] = 6955080000
 
     return positions, speed, radius, mass
 
@@ -87,6 +95,9 @@ def startup(sim_pipe, delta_t, nr_of_bodies):
             sim_pipe (multiprocessing.Pipe): Pipe to send results
             delta_t (float): Simulation step width.
     """
+
+    max_distance = sc.AE_CONSTANT #TODO: UI!
+
     positions, speed, radius, mass = _initialise_bodies(nr_of_bodies)
     while True:
         if sim_pipe.poll():
@@ -97,5 +108,5 @@ def startup(sim_pipe, delta_t, nr_of_bodies):
         _move_bodies_circle(positions, speed, mass, delta_t)
         pos_with_radius = np.c_[positions, radius]
         # print(pos_with_radius)
-        sim_pipe.send(pos_with_radius * (1/sc.AE_CONSTANT))
+        sim_pipe.send(pos_with_radius * (1/(max_distance)))
         # Positions changed in movedbodies is sent to renderer through the pipe

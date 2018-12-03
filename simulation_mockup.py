@@ -22,37 +22,73 @@
 #
 import sys
 import time
-import math
 import numpy as np
+import physics_formula as pf
 
-from simulation_constants import END_MESSAGE
+import simulation_constants as sc
 
 __FPS = 60
 __DELTA_ALPHA = 0.01
 
 
-def _move_bodies(bodies, delta_t):  # This function will be responsible for setting new positions.
-    for body_index, body in enumerate(bodies):
-        print(body)
-        j = len(bodies) - body_index
-        sin_a = math.sin(__DELTA_ALPHA * j * delta_t)
-        cos_a = math.cos(__DELTA_ALPHA * j * delta_t)
-        pos_x = body[0]
-        pos_y = body[1]
-        body[0] = pos_x * cos_a - pos_y * sin_a
-        body[1] = pos_x * sin_a + pos_y * cos_a
+def _move_bodies_circle(positions, speed, mass, delta_t):
+    # This function will be responsible for setting new positions.
+    timestep = delta_t*60*24
+
+    for i in range(mass.size):
+        mass_foc_pos = pf.calc_mass_focus_ignore(i, mass, positions)
+        mass_foc_weight = np.sum(mass) - mass[i]
+        grav_force = pf.calc_gravitational_force(mass[i],
+                                                 mass_foc_weight,
+                                                 positions[i],
+                                                 mass_foc_pos)
+        accel = pf.calc_acceleration(grav_force, mass[i])
+        speed[i] = pf.calc_speed_direction(i, mass, positions)
+        positions[i] = pf.next_location(mass[i], positions[i], speed[i],
+                                        accel, timestep)
+
     time.sleep(1/__FPS)
 
 
-def _initialise_bodies(nr_of_bodies):  # function creates our bodies. TODO: change this so different masses are set.
-    body_array = np.zeros((nr_of_bodies, 4), dtype=np.float64)
-    for body_index in range(nr_of_bodies):
-        body_array[body_index][0] = 0.9/(nr_of_bodies-body_index)
-        body_array[body_index][3] = 0.1 * body_array[body_index][0]
-    return body_array
+def _initialise_bodies(nr_of_bodies):
+    # TODO: initialise bodies based on nr_of_bodies
+
+    body_amount = 4
+    positions = np.zeros((body_amount, 3), dtype=np.float64)
+    speed = np.zeros((body_amount, 3), dtype=np.float64)
+    radius = np.zeros((body_amount), dtype=np.float64)
+    mass = np.zeros((body_amount), dtype=np.float64)
+
+    #Sonne
+    positions[0] = np.array([0, 0, 0])
+    speed[0] = [0, 0, 0]
+    mass[0] = sc.SUN_WEIGHT
+    radius[0] = 6955080000
+
+    #Merkur
+    positions[1] = np.array([5.791*10**10, 0, 0])
+    speed[1] = np.array([0, 47362, 0])
+    mass[1] = 3.285*10**23
+    radius[1] = 6955080000/4
+
+    #Venus
+    positions[2] = np.array([1.082*10**11, 0, 0])
+    speed[2] = np.array([0, 35020, 0])
+    mass[2] = 4.867*10**24
+    radius[2] = 6955080000/3
+
+    #Erde
+    positions[3] = np.array([sc.AE_CONSTANT, 0, 0])
+    speed[3] = np.array([0, sc.EARTH_SPEED, 0])
+    mass[3] = sc.EARTH_WEIGHT
+    radius[3] = 6955080000/2
+
+    
+
+    return positions, speed, radius, mass
 
 
-def startup(sim_pipe, nr_of_bodies, delta_t):
+def startup(sim_pipe, delta_t, nr_of_bodies):
     """
         Initialise and continuously update a position list.
 
@@ -60,15 +96,17 @@ def startup(sim_pipe, nr_of_bodies, delta_t):
 
         Args:
             sim_pipe (multiprocessing.Pipe): Pipe to send results
-            nr_of_bodies (int): Number of bodies to be created and updated.
             delta_t (float): Simulation step width.
     """
-    bodies = _initialise_bodies(nr_of_bodies)
+    positions, speed, radius, mass = _initialise_bodies(nr_of_bodies)
     while True:
         if sim_pipe.poll():
             message = sim_pipe.recv()
-            if isinstance(message, str) and message == END_MESSAGE:
+            if isinstance(message, str) and message == sc.END_MESSAGE:
                 print('simulation exiting ...')
                 sys.exit(0)
-        _move_bodies(bodies, delta_t)
-        sim_pipe.send(bodies)  # Positions changed in moved bodies is sent to the renderer through the pipe.
+        _move_bodies_circle(positions, speed, mass, delta_t)
+        pos_with_radius = np.c_[positions, radius]
+        # print(pos_with_radius)
+        sim_pipe.send(pos_with_radius * (1/(sc.AE_CONSTANT)))
+        # Positions changed in movedbodies is sent to renderer through the pipe
