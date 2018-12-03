@@ -55,13 +55,15 @@ class SimulationGUI(QtWidgets.QMainWindow):
            				   float(str(self.ui.maxDistanceLineEdit.text())))
         rad_lim = (float(str(self.ui.minRadiusLineEdit.text())), \
         				 float(str(self.ui.maxRadiusLineEdit.text())))
+        black_weight = float(str(self.ui.blackHoleWeightLineEdit.text()))
 
         self.renderer_conn, self.simulation_conn = multiprocessing.Pipe()
         self.simulation_process = \
             multiprocessing.Process(target=simulation_physics.startup,
                                     args=(self.simulation_conn,
                                           1, nr_of_planets,
-                                          mass_lim, dis_lim, rad_lim))
+                                          mass_lim, dis_lim, 
+                                          rad_lim, black_weight))
         self.render_process = \
             multiprocessing.Process(target=galaxy_renderer.startup,
                                     args=(self.renderer_conn, 60), )

@@ -37,14 +37,14 @@
        </property>
       </widget>
      </item>
-     <item row="11" column="0">
+     <item row="13" column="0">
       <widget class="QPushButton" name="startButton">
        <property name="text">
         <string>Start</string>
        </property>
       </widget>
      </item>
-     <item row="11" column="1">
+     <item row="13" column="1">
       <widget class="QPushButton" name="quitButton">
        <property name="text">
         <string>Quit</string>
@@ -115,6 +115,13 @@
         </size>
        </property>
       </spacer>
+     </item>
+     <item row="5" column="1">
+      <widget class="QLineEdit" name="minMassLineEdit">
+       <property name="text">
+        <string>1000000000000000</string>
+       </property>
+      </widget>
      </item>
      <item row="10" column="1">
       <spacer name="horizontalSpacer_6">
@@ -242,10 +249,17 @@
        </property>
       </widget>
      </item>
-     <item row="5" column="1">
-      <widget class="QLineEdit" name="minMassLineEdit">
+     <item row="11" column="0">
+      <widget class="QLabel" name="blackHoleWeightLabel">
        <property name="text">
-        <string>1000000000000000</string>
+        <string>Black Hole Weight</string>
+       </property>
+      </widget>
+     </item>
+     <item row="11" column="1">
+      <widget class="QLineEdit" name="blackHoleWeightLineEdit">
+       <property name="text">
+        <string>2000000000000000000000000000000</string>
        </property>
       </widget>
      </item>

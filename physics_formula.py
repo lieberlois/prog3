@@ -38,7 +38,7 @@ def calc_gravitational_force(mass1, mass2, pos1, pos2):
     """
 
     delta_pos = np.linalg.norm(pos2 - pos1)
-    return G_CONSTANT * ((mass1 * mass2)/delta_pos**3) * (pos2 - pos1)
+    return G_CONSTANT * (((mass1)/delta_pos**3)*mass2) * (pos2 - pos1)
 
 
 def next_location(position, speed, acceleration, delta_t):

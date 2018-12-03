@@ -34,7 +34,7 @@ __DELTA_ALPHA = 0.01
 
 def _move_bodies_circle(positions, speed, mass, delta_t):
     # This function will be responsible for setting new positions.
-    timestep = delta_t*60*24
+    timestep = delta_t*1000
 
     for i in range(mass.size):
         mass_foc_pos = pf.calc_mass_focus_ignore(i, mass, positions)
@@ -48,10 +48,7 @@ def _move_bodies_circle(positions, speed, mass, delta_t):
         positions[i] = pf.next_location(positions[i], speed[i],
                                         accel, timestep)
 
-    time.sleep(1/__FPS)
-
-
-def _initialise_bodies(nr_of_bodies, mass_lim, dis_lim, rad_lim):
+def _initialise_bodies(nr_of_bodies, mass_lim, dis_lim, rad_lim, black_weight):
     min_mass = mass_lim[0]
     max_mass = mass_lim[1]
     min_radius = rad_lim[0]
@@ -59,7 +56,7 @@ def _initialise_bodies(nr_of_bodies, mass_lim, dis_lim, rad_lim):
     min_distance = dis_lim[0]
     max_distance = dis_lim[1]
 
-    black_hole_weight = 2.00*10**30
+    black_hole_weight = black_weight
 
     positions = np.zeros((nr_of_bodies+1, 3), dtype=np.float64)
     speed = np.zeros((nr_of_bodies+1, 3), dtype=np.float64)
@@ -73,7 +70,6 @@ def _initialise_bodies(nr_of_bodies, mass_lim, dis_lim, rad_lim):
     radius[0] = 5000000000
 
     for i in range(1, nr_of_bodies+1):
-        #Black Hole
         positions[i] = np.array([rand.uniform(min_distance, max_distance), 0, 0])
         speed[i] = [0, pf.calc_absolute_speed(i, mass, positions), 0]
         mass[i] = rand.uniform(min_mass, max_mass)
@@ -83,7 +79,7 @@ def _initialise_bodies(nr_of_bodies, mass_lim, dis_lim, rad_lim):
     return positions, speed, radius, mass
 
 
-def startup(sim_pipe, delta_t, nr_of_bodies, mass_lim, dis_lim, rad_lim):
+def startup(sim_pipe, delta_t, nr_of_bodies, mass_lim, dis_lim, rad_lim, black_weight):
     """
         Initialise and continuously update a position list.
 
@@ -94,7 +90,7 @@ def startup(sim_pipe, delta_t, nr_of_bodies, mass_lim, dis_lim, rad_lim):
             delta_t (float): Simulation step width.
     """
 
-    positions, speed, radius, mass = _initialise_bodies(nr_of_bodies, mass_lim, dis_lim, rad_lim)
+    positions, speed, radius, mass = _initialise_bodies(nr_of_bodies, mass_lim, dis_lim, rad_lim, black_weight)
     while True:
         if sim_pipe.poll():
             message = sim_pipe.recv()
