@@ -34,7 +34,7 @@ __DELTA_ALPHA = 0.01
 
 def _move_bodies_circle(positions, speed, mass, delta_t):
     # This function will be responsible for setting new positions.
-    timestep = delta_t*3000
+    timestep = delta_t*10000
 
     for i in range(1, mass.size):
         mass_foc_pos = pf.calc_mass_focus_ignore(i, mass, positions)
@@ -47,6 +47,9 @@ def _move_bodies_circle(positions, speed, mass, delta_t):
         speed[i] = pf.calc_speed_direction(i, mass, positions)
         positions[i] = pf.next_location(positions[i], speed[i],
                                         accel, timestep)
+
+def _get_sign():
+	return 1 if rand.random() >= 0.5 else -1
 
 def _initialise_bodies(nr_of_bodies, mass_lim, dis_lim, rad_lim, black_weight):
     min_mass = mass_lim[0]
@@ -64,7 +67,6 @@ def _initialise_bodies(nr_of_bodies, mass_lim, dis_lim, rad_lim, black_weight):
     radius = np.zeros((nr_of_bodies+1), dtype=np.float64)
     mass = np.zeros((nr_of_bodies+1), dtype=np.float64)
 
-    print(f"max_z: {max_z}")
 
     #Black Hole
     positions[0] = np.array([0, 0, 0])
@@ -73,9 +75,9 @@ def _initialise_bodies(nr_of_bodies, mass_lim, dis_lim, rad_lim, black_weight):
     radius[0] = 5000000000
 
     for i in range(1, nr_of_bodies+1):
-        positions[i] = np.array([rand.uniform(-max_distance, max_distance), 
-        	                     rand.uniform(-max_distance, max_distance), 
-        	                     rand.uniform(-max_z, max_z)])
+        positions[i] = np.array([rand.uniform(min_distance, max_distance) * _get_sign(), 
+        	                     rand.uniform(min_distance, max_distance) * _get_sign(), 
+        	                     rand.uniform(0, max_z) * _get_sign()])
         #TODO: as x y and z are random between -max and +max they can get too close to the black hole
         speed[i] = [0, pf.calc_absolute_speed(i, mass, positions), 0]
         mass[i] = rand.uniform(min_mass, max_mass)
