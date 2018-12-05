@@ -21,7 +21,6 @@
 # or open http://www.fsf.org/licensing/licenses/gpl.html
 #
 import sys
-import time
 import random as rand
 import numpy as np
 import physics_formula as pf
@@ -49,7 +48,7 @@ def _move_bodies_circle(positions, speed, mass, delta_t):
                                         accel, timestep)
 
 def _get_sign():
-	return 1 if rand.random() >= 0.5 else -1
+    return 1 if rand.random() >= 0.5 else -1
 
 def _initialise_bodies(nr_of_bodies, mass_lim, dis_lim, rad_lim, black_weight):
     min_mass = mass_lim[0]
@@ -75,10 +74,12 @@ def _initialise_bodies(nr_of_bodies, mass_lim, dis_lim, rad_lim, black_weight):
     radius[0] = 5000000000
 
     for i in range(1, nr_of_bodies+1):
-        positions[i] = np.array([rand.uniform(min_distance, max_distance) * _get_sign(), 
-        	                     rand.uniform(min_distance, max_distance) * _get_sign(), 
-        	                     rand.uniform(0, max_z) * _get_sign()])
-        #TODO: as x y and z are random between -max and +max they can get too close to the black hole
+        x_pos = rand.uniform(min_distance, max_distance) * _get_sign()
+        y_pos = rand.uniform(min_distance, 
+        	                 np.sqrt(max_distance**2 - x_pos**2)) * _get_sign()
+        #Note: y_pos gets randomly generated between the min distance and the distance
+        #      so that the length of the (x, y) vector is never longer than max_distance.
+        positions[i] = np.array([x_pos, y_pos, rand.uniform(0, max_z) * _get_sign()])
         speed[i] = [0, pf.calc_absolute_speed(i, mass, positions), 0]
         mass[i] = rand.uniform(min_mass, max_mass)
         radius[i] = rand.uniform(min_radius, max_radius)
@@ -98,7 +99,11 @@ def startup(sim_pipe, delta_t, nr_of_bodies, mass_lim, dis_lim, rad_lim, black_w
             delta_t (float): Simulation step width.
     """
 
-    positions, speed, radius, mass = _initialise_bodies(nr_of_bodies, mass_lim, dis_lim, rad_lim, black_weight)
+    positions, speed, radius, mass = _initialise_bodies(nr_of_bodies, 
+                                                        mass_lim, 
+                                                        dis_lim, 
+                                                        rad_lim, 
+                                                        black_weight)
     while True:
         if sim_pipe.poll():
             message = sim_pipe.recv()
