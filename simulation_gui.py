@@ -54,7 +54,8 @@ class SimulationGUI(QtWidgets.QMainWindow):
         mass_lim = (float(str(self.ui.minMassLineEdit.text())), \
         			   float(str(self.ui.maxMassLineEdit.text())))
         dis_lim = (float(str(self.ui.minDistanceLineEdit.text())), \
-           				   float(str(self.ui.maxDistanceLineEdit.text())))
+           		   float(str(self.ui.maxDistanceLineEdit.text())), \
+                   float(str(self.ui.maxDistanceZValue.text())))
         rad_lim = (float(str(self.ui.minRadiusLineEdit.text())), \
         				 float(str(self.ui.maxRadiusLineEdit.text())))
         black_weight = float(str(self.ui.blackHoleWeightLineEdit.text()))

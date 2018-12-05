@@ -75,7 +75,7 @@ def calc_mass_focus(masses, positions):
     tmp_focus = np.zeros(3, dtype=np.float64)
     for i in range(masses.size):
         tmp_focus = tmp_focus + masses[i] * positions[i]
-    return (1/total_mass(masses)) * tmp_focus
+    return (tmp_focus/total_mass(masses))
 
 
 def calc_mass_focus_ignore(ignore, masses, positions):
@@ -93,7 +93,7 @@ def calc_mass_focus_ignore(ignore, masses, positions):
         if i == ignore:
             continue
         tmp_loc = tmp_loc + (masses[i] * positions[i])
-    return (1/(total_mass(masses) - masses[i]))*tmp_loc
+    return (tmp_loc/(total_mass(masses) - masses[i]))
 
 
 def calc_momentum(masses, speeds):
