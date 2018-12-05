@@ -19,7 +19,6 @@
 #
 import sys
 import multiprocessing
-import time
 
 
 from PyQt5 import QtWidgets, uic
@@ -51,13 +50,13 @@ class SimulationGUI(QtWidgets.QMainWindow):
         """
         self.stop_simulation()
         nr_of_planets = self.ui.nrPlanetSpinBox.value()
-        mass_lim = (float(str(self.ui.minMassLineEdit.text())), \
-        			   float(str(self.ui.maxMassLineEdit.text())))
-        dis_lim = (float(str(self.ui.minDistanceLineEdit.text())), \
-           		   float(str(self.ui.maxDistanceLineEdit.text())), \
+        mass_lim = (float(str(self.ui.minMassLineEdit.text())),\
+                    float(str(self.ui.maxMassLineEdit.text())))
+        dis_lim = (float(str(self.ui.minDistanceLineEdit.text())),\
+                   float(str(self.ui.maxDistanceLineEdit.text())),\
                    float(str(self.ui.maxDistanceZValue.text())))
-        rad_lim = (float(str(self.ui.minRadiusLineEdit.text())), \
-        				 float(str(self.ui.maxRadiusLineEdit.text())))
+        rad_lim = (float(str(self.ui.minRadiusLineEdit.text())),\
+                   float(str(self.ui.maxRadiusLineEdit.text())))
         black_weight = float(str(self.ui.blackHoleWeightLineEdit.text()))
 
         self.renderer_conn, self.simulation_conn = multiprocessing.Pipe()
@@ -65,15 +64,15 @@ class SimulationGUI(QtWidgets.QMainWindow):
             multiprocessing.Process(target=simulation_physics.startup,
                                     args=(self.simulation_conn,
                                           1, nr_of_planets,
-                                          mass_lim, dis_lim, 
+                                          mass_lim, dis_lim,
                                           rad_lim, black_weight))
         self.render_process = \
             multiprocessing.Process(target=galaxy_renderer.startup,
                                     args=(self.renderer_conn, 60), )
 
-        #self.close()
+        # self.close()
         self.simulation_process.start()
-        self.render_process.start()   
+        self.render_process.start()
 
     def stop_simulation(self):
         """

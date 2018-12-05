@@ -21,7 +21,8 @@
 # or open http://www.fsf.org/licensing/licenses/gpl.html
 #
 import sys
-import random as rand
+# import random as rand
+from random import uniform, random
 import numpy as np
 import physics_formula as pf
 
@@ -47,8 +48,10 @@ def _move_bodies_circle(positions, speed, mass, delta_t):
         positions[i] = pf.next_location(positions[i], speed[i],
                                         accel, timestep)
 
+
 def _get_sign():
-    return 1 if rand.random() >= 0.5 else -1
+    return 1 if random() >= 0.5 else -1
+
 
 def _initialise_bodies(nr_of_bodies, mass_lim, dis_lim, rad_lim, black_weight):
     min_mass = mass_lim[0]
@@ -66,24 +69,25 @@ def _initialise_bodies(nr_of_bodies, mass_lim, dis_lim, rad_lim, black_weight):
     radius = np.zeros((nr_of_bodies+1), dtype=np.float64)
     mass = np.zeros((nr_of_bodies+1), dtype=np.float64)
 
-
-    #Black Hole
+    # Black Hole
     positions[0] = np.array([0, 0, 0])
     speed[0] = [0, 0, 0]
     mass[0] = black_hole_weight
     radius[0] = 5000000000
 
     for i in range(1, nr_of_bodies+1):
-        x_pos = rand.uniform(min_distance, max_distance) * _get_sign()
-        y_pos = rand.uniform(min_distance, 
-        	                 np.sqrt(max_distance**2 - x_pos**2)) * _get_sign()
-        #Note: y_pos gets randomly generated between the min distance and the distance
-        #      so that the length of the (x, y) vector is never longer than max_distance.
-        positions[i] = np.array([x_pos, y_pos, rand.uniform(0, max_z) * _get_sign()])
+        x_pos = uniform(min_distance, max_distance) * _get_sign()
+        y_pos = uniform(min_distance,
+                        np.sqrt(max_distance**2 - x_pos**2))*_get_sign()
+        # Note: y_pos gets randomly generated between the min distance and
+        #       the distance so that the length of the (x, y) vector
+        #       is never longer than max_distance.
+        positions[i] = np.array([x_pos,
+                                 y_pos,
+                                 uniform(0, max_z) * _get_sign()])
         speed[i] = [0, pf.calc_absolute_speed(i, mass, positions), 0]
-        mass[i] = rand.uniform(min_mass, max_mass)
-        radius[i] = rand.uniform(min_radius, max_radius)
-
+        mass[i] = uniform(min_mass, max_mass)
+        radius[i] = uniform(min_radius, max_radius)
 
     return positions, speed, radius, mass
 
@@ -99,10 +103,10 @@ def startup(sim_pipe, delta_t, nr_of_bodies, mass_lim, dis_lim, rad_lim, black_w
             delta_t (float): Simulation step width.
     """
 
-    positions, speed, radius, mass = _initialise_bodies(nr_of_bodies, 
-                                                        mass_lim, 
-                                                        dis_lim, 
-                                                        rad_lim, 
+    positions, speed, radius, mass = _initialise_bodies(nr_of_bodies,
+                                                        mass_lim,
+                                                        dis_lim,
+                                                        rad_lim,
                                                         black_weight)
     while True:
         if sim_pipe.poll():
