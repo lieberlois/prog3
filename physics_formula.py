@@ -19,7 +19,7 @@ def calc_acceleration(force, mass):
     """
     if mass <= 0:
         raise TypeError('Mass has to be greater than 0')
-    return (1/mass)*force
+    return (force/mass)
 
 
 def calc_gravitational_force(mass1, mass2, pos1, pos2):
