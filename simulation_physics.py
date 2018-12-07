@@ -83,12 +83,14 @@ def _initialise_bodies(nr_of_bodies, mass_lim, dis_lim, rad_lim, black_weight):
                                  y_pos,
                                  uniform(0, max_z) * _get_sign()])
         
+        mass[i] = uniform(min_mass, max_mass)
+        radius[i] = uniform(min_radius, max_radius)
+    
+    for i in range(1, nr_of_bodies+1):
         # This is probably wrong because bodies only get a y-speed
         #     speed[i] = [0, pf.calc_absolute_speed(i, mass, positions), 0]
         # Solution:
         speed[i] = pf.calc_speed_direction(i, mass, positions)
-        mass[i] = uniform(min_mass, max_mass)
-        radius[i] = uniform(min_radius, max_radius)
 
     return positions, speed, radius, mass
 
