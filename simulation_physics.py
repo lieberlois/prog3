@@ -32,11 +32,9 @@ __FPS = 60
 __DELTA_ALPHA = 0.01
 
 
-def _move_bodies_circle(positions, speed, mass, delta_t):
+def _move_bodies_circle(positions, speed, mass, timestep):
     # This function will be responsible for setting new positions.
-    timestep = delta_t*1000
-
-    for i in range(1, mass.size):
+    for i in range(mass.size):
         mass_foc_pos = pf.calc_mass_focus_ignore(i, mass, positions)
         mass_foc_weight = np.sum(mass) - mass[i]
         grav_force = pf.calc_gravitational_force(mass[i],
@@ -95,7 +93,7 @@ def _initialise_bodies(nr_of_bodies, mass_lim, dis_lim, rad_lim, black_weight):
     return positions, speed, radius, mass
 
 
-def startup(sim_pipe, delta_t, nr_of_bodies, mass_lim, dis_lim, rad_lim, black_weight):
+def startup(sim_pipe, nr_of_bodies, mass_lim, dis_lim, rad_lim, black_weight, timestep):
     """
         Initialise and continuously update a position list.
 
@@ -117,7 +115,7 @@ def startup(sim_pipe, delta_t, nr_of_bodies, mass_lim, dis_lim, rad_lim, black_w
             if isinstance(message, str) and message == sc.END_MESSAGE:
                 print('simulation exiting ...')
                 sys.exit(0)
-        _move_bodies_circle(positions, speed, mass, delta_t)
+        _move_bodies_circle(positions, speed, mass, timestep)
         pos_with_radius = np.c_[positions, radius]
         # print(pos_with_radius)
         sim_pipe.send(pos_with_radius * (1/dis_lim[1]))
