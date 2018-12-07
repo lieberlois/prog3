@@ -34,7 +34,7 @@ __DELTA_ALPHA = 0.01
 
 def _move_bodies_circle(positions, speed, mass, delta_t):
     # This function will be responsible for setting new positions.
-    timestep = delta_t*10000
+    timestep = delta_t*1000
 
     for i in range(1, mass.size):
         mass_foc_pos = pf.calc_mass_focus_ignore(i, mass, positions)
@@ -44,10 +44,9 @@ def _move_bodies_circle(positions, speed, mass, delta_t):
                                                  positions[i],
                                                  mass_foc_pos)
         accel = pf.calc_acceleration(grav_force, mass[i])
-        speed[i] = pf.calc_speed_direction(i, mass, positions)
+        speed[i] = speed[i] + timestep * accel
         positions[i] = pf.next_location(positions[i], speed[i],
                                         accel, timestep)
-
 
 def _get_sign():
     return 1 if random() >= 0.5 else -1
@@ -85,7 +84,11 @@ def _initialise_bodies(nr_of_bodies, mass_lim, dis_lim, rad_lim, black_weight):
         positions[i] = np.array([x_pos,
                                  y_pos,
                                  uniform(0, max_z) * _get_sign()])
-        speed[i] = [0, pf.calc_absolute_speed(i, mass, positions), 0]
+        
+        # This is probably wrong because bodies only get a y-speed
+        #     speed[i] = [0, pf.calc_absolute_speed(i, mass, positions), 0]
+        # Solution:
+        speed[i] = pf.calc_speed_direction(i, mass, positions)
         mass[i] = uniform(min_mass, max_mass)
         radius[i] = uniform(min_radius, max_radius)
 
