@@ -2,7 +2,6 @@
 Modul zur physikalischen Berechnung von Kraeften
 """
 
-import math
 import numpy as np
 from simulation_constants import G_CONSTANT
 
@@ -75,7 +74,7 @@ def calc_mass_focus(masses, positions):
     tmp_focus = np.zeros(3, dtype=np.float64)
     for i in range(masses.size):
         tmp_focus = tmp_focus + masses[i] * positions[i]
-    return (tmp_focus/total_mass(masses))
+    return tmp_focus/total_mass(masses)
 
 
 def calc_mass_focus_ignore(ignore, masses, positions):
@@ -93,7 +92,7 @@ def calc_mass_focus_ignore(ignore, masses, positions):
         if i == ignore:
             continue
         tmp_loc = tmp_loc + (masses[i] * positions[i])
-    return (tmp_loc/(total_mass(masses) - masses[i]))
+    return tmp_loc/(total_mass(masses) - masses[ignore])
 
 
 def calc_momentum(masses, speeds):
@@ -124,7 +123,7 @@ def calc_absolute_speed(body_index, masses, positions):
 
     r_vector = np.linalg.norm(my_position - mass_focus_ignored)
     return ((total_mass(masses) - my_mass) /
-            total_mass(masses))*math.sqrt(G_CONSTANT*total_mass(masses)/r_vector)
+            total_mass(masses))*np.sqrt(G_CONSTANT*total_mass(masses)/r_vector)
 
 
 def calc_speed_direction(body_index, masses, positions):
