@@ -12,7 +12,7 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITfrom numba import jitNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
@@ -21,11 +21,9 @@
 # or open http://www.fsf.org/licensing/licenses/gpl.html
 #
 import sys
-# import random as rand
 from random import uniform, random
 import numpy as np
 import physics_formula as pf
-
 import simulation_constants as sc
 
 __FPS = 60

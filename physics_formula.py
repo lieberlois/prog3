@@ -3,9 +3,11 @@ Modul zur physikalischen Berechnung von Kraeften
 """
 
 import numpy as np
+#from numba import jit
 from simulation_constants import G_CONSTANT
 
 
+# Annotation für numba: @jit
 def calc_acceleration(force, mass):
     """
     Funktion zur Berechnung der Beschleunigung, aus der Formel F = m*a
@@ -21,6 +23,7 @@ def calc_acceleration(force, mass):
     return (force/mass)
 
 
+# Annotation für numba: @jit
 def calc_gravitational_force(mass1, mass2, pos1, pos2):
     """
     Brechnet Gravitionskraft, mit der eine Punktmasse mass1, die sich an pos1
@@ -40,6 +43,7 @@ def calc_gravitational_force(mass1, mass2, pos1, pos2):
     return G_CONSTANT * (((mass1)/delta_pos**3)*mass2) * (pos2 - pos1)
 
 
+# Annotation für numba: @jit
 def next_location(position, speed, acceleration, delta_t):
     """
     Berechnet die neue Position eines Koerpers nach einer bestimmten Zeit.
@@ -53,6 +57,7 @@ def next_location(position, speed, acceleration, delta_t):
     return position + delta_t * speed + (delta_t**2/2)*acceleration
 
 
+# Annotation für numba: @jit
 def total_mass(masses):
     """
     Berechnet die Gesamtmasse M aller Körper
@@ -63,6 +68,7 @@ def total_mass(masses):
     return np.sum(masses)
 
 
+# Annotation für numba: @jit
 def calc_mass_focus(masses, positions):
     """
     Berechnet die Position des Massen-Schwerpunkts
@@ -77,6 +83,7 @@ def calc_mass_focus(masses, positions):
     return tmp_focus/total_mass(masses)
 
 
+# Annotation für numba: @jit
 def calc_mass_focus_ignore(ignore, masses, positions):
     """
     Berechnet die Position des Massenfokuspunktes im Raum.
@@ -95,6 +102,7 @@ def calc_mass_focus_ignore(ignore, masses, positions):
     return tmp_loc/(total_mass(masses) - masses[ignore])
 
 
+# Annotation für numba: @jit
 def calc_momentum(masses, speeds):
     """
     Berechnet Gesamtimpuls des Systems
@@ -109,6 +117,7 @@ def calc_momentum(masses, speeds):
     return tmp_momentum
 
 
+# Annotation für numba: @jit
 def calc_absolute_speed(body_index, masses, positions):
     """
     Berechnet den Betrag der Geschwindigkeit für den Körper body_index
@@ -126,6 +135,7 @@ def calc_absolute_speed(body_index, masses, positions):
             total_mass(masses))*np.sqrt(G_CONSTANT*total_mass(masses)/r_vector)
 
 
+# Annotation für numba: @jit
 def calc_speed_direction(body_index, masses, positions):
     """
     Berechnet die Richtung der Geschwindigkeit für den Körper body_index
