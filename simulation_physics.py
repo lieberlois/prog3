@@ -1,6 +1,5 @@
 """
-    Module to send changing object positions through a pipe. Note that
-    this is not a simulation, but a mockup.
+    Module to send changing object positions through a pipe. 
 """
 #
 # Copyright (C) 2017  "Peter Roesch" <Peter.Roesch@fh-augsburg.de>
@@ -43,10 +42,13 @@ def _move_bodies_circle(positions, speed, mass, timestep):
         positions[i] = pf.next_location(positions[i], speed[i],
                                         accel, timestep)
 
+<<<<<<< HEAD
 
 def _get_sign():
     return 1 if random() >= 0.5 else -1
 
+=======
+>>>>>>> b425c36e29ba624f57d22ff7c3e9a98611a2137c
 
 def _initialise_bodies(nr_of_bodies, mass_lim, dis_lim, rad_lim, black_weight):
     min_mass = mass_lim[0]
@@ -80,17 +82,18 @@ def _initialise_bodies(nr_of_bodies, mass_lim, dis_lim, rad_lim, black_weight):
         positions[i] = np.array([x_pos,
                                  y_pos,
                                  uniform(0, max_z) * _get_sign()])
-        
+
         mass[i] = uniform(min_mass, max_mass)
         radius[i] = uniform(min_radius, max_radius)
-    
+
     for i in range(1, nr_of_bodies+1):
-        # This is probably wrong because bodies only get a y-speed
-        #     speed[i] = [0, pf.calc_absolute_speed(i, mass, positions), 0]
-        # Solution:
         speed[i] = pf.calc_speed_direction(i, mass, positions)
 
     return positions, speed, radius, mass
+
+
+def _get_sign():
+    return 1 if random() >= 0.5 else -1
 
 
 def startup(sim_pipe, nr_of_bodies, mass_lim, dis_lim, rad_lim, black_weight, timestep):
@@ -117,6 +120,5 @@ def startup(sim_pipe, nr_of_bodies, mass_lim, dis_lim, rad_lim, black_weight, ti
                 sys.exit(0)
         _move_bodies_circle(positions, speed, mass, timestep)
         pos_with_radius = np.c_[positions, radius]
-        # print(pos_with_radius)
         sim_pipe.send(pos_with_radius * (1/dis_lim[1]))
         # Positions changed in movedbodies is sent to renderer through the pipe
