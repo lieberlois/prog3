@@ -42,13 +42,8 @@ def _move_bodies_circle(positions, speed, mass, timestep):
         positions[i] = pf.next_location(positions[i], speed[i],
                                         accel, timestep)
 
-<<<<<<< HEAD
-
 def _get_sign():
     return 1 if random() >= 0.5 else -1
-
-=======
->>>>>>> b425c36e29ba624f57d22ff7c3e9a98611a2137c
 
 def _initialise_bodies(nr_of_bodies, mass_lim, dis_lim, rad_lim, black_weight):
     min_mass = mass_lim[0]
