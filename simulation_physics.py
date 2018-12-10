@@ -29,7 +29,6 @@ import simulation_constants as sc
 __FPS = 60
 __DELTA_ALPHA = 0.01
 
-
 def _move_bodies_circle(positions, speed, mass, timestep):
     # This function will be responsible for setting new positions.
     for i in range(mass.size):
@@ -43,6 +42,7 @@ def _move_bodies_circle(positions, speed, mass, timestep):
         speed[i] = speed[i] + timestep * accel
         positions[i] = pf.next_location(positions[i], speed[i],
                                         accel, timestep)
+
 
 def _get_sign():
     return 1 if random() >= 0.5 else -1
