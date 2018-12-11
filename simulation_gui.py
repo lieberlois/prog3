@@ -29,7 +29,7 @@ from simulation_constants import END_MESSAGE
 
 class SimulationGUI(QtWidgets.QMainWindow):
     """
-        Widget with buttons
+        Widget with Buttons and LineEdits
     """
     def __init__(self):
         QtWidgets.QWidget.__init__(self)
@@ -45,7 +45,6 @@ class SimulationGUI(QtWidgets.QMainWindow):
 
         #This caused a bug where the multiprocessing context was already set:
         #multiprocessing.set_start_method('spawn')
-        
 
     def start_simulation(self):
         """
@@ -111,4 +110,5 @@ def _main(argv):
 
 
 if __name__ == '__main__':
+    # TODO: The Compiling of our Cython files should be handled here
     _main(sys.argv)

@@ -6,6 +6,7 @@ import numpy as np
 from numba import jit
 from simulation_constants import G_CONSTANT
 
+
 @jit
 def calc_acceleration(force, mass):
     """
@@ -19,7 +20,8 @@ def calc_acceleration(force, mass):
     """
     if mass <= 0:
         raise TypeError('Mass has to be greater than 0')
-    return (force/mass)
+    return force/mass
+
 
 @jit
 def calc_gravitational_force(mass1, mass2, pos1, pos2):
@@ -40,6 +42,7 @@ def calc_gravitational_force(mass1, mass2, pos1, pos2):
     delta_pos = np.linalg.norm(pos2 - pos1)
     return G_CONSTANT * (((mass1)/delta_pos**3)*mass2) * (pos2 - pos1)
 
+
 @jit
 def next_location(position, speed, acceleration, delta_t):
     """
@@ -53,6 +56,7 @@ def next_location(position, speed, acceleration, delta_t):
     """
     return position + delta_t * speed + (delta_t**2/2)*acceleration
 
+
 @jit
 def total_mass(masses):
     """
@@ -62,6 +66,7 @@ def total_mass(masses):
         masses: Liste aller Massen
     """
     return np.sum(masses)
+
 
 @jit
 def calc_mass_focus(masses, positions):
@@ -76,6 +81,7 @@ def calc_mass_focus(masses, positions):
     for i in range(masses.size):
         tmp_focus = tmp_focus + masses[i] * positions[i]
     return tmp_focus/total_mass(masses)
+
 
 @jit
 def calc_mass_focus_ignore(ignore, masses, positions):
@@ -95,6 +101,7 @@ def calc_mass_focus_ignore(ignore, masses, positions):
         tmp_loc = tmp_loc + (masses[i] * positions[i])
     return tmp_loc/(total_mass(masses) - masses[ignore])
 
+
 @jit
 def calc_momentum(masses, speeds):
     """
@@ -108,6 +115,7 @@ def calc_momentum(masses, speeds):
     for i in range(masses.size):
         tmp_momentum = tmp_momentum + masses[i]*speeds[i]
     return tmp_momentum
+
 
 @jit
 def calc_absolute_speed(body_index, masses, positions):
@@ -125,6 +133,7 @@ def calc_absolute_speed(body_index, masses, positions):
     r_vector = np.linalg.norm(my_position - mass_focus_ignored)
     return ((total_mass(masses) - my_mass) /
             total_mass(masses))*np.sqrt(G_CONSTANT*total_mass(masses)/r_vector)
+
 
 @jit
 def calc_speed_direction(body_index, masses, positions):

@@ -1,5 +1,5 @@
 """
-    Module to send changing object positions through a pipe. 
+    Module to send changing object positions through a pipe.
 """
 #
 # Copyright (C) 2017  "Peter Roesch" <Peter.Roesch@fh-augsburg.de>
@@ -11,7 +11,7 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITfrom numba import jitNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
@@ -28,6 +28,7 @@ import simulation_constants as sc
 __FPS = 60
 __DELTA_ALPHA = 0.01
 
+
 def _move_bodies_circle(positions, speed, mass, timestep):
     # This function will be responsible for setting new positions.
     for i in range(mass.size):
@@ -42,8 +43,6 @@ def _move_bodies_circle(positions, speed, mass, timestep):
         positions[i] = pf.next_location(positions[i], speed[i],
                                         accel, timestep)
 
-def _get_sign():
-    return 1 if random() >= 0.5 else -1
 
 def _initialise_bodies(nr_of_bodies, mass_lim, dis_lim, rad_lim, black_weight):
     min_mass = mass_lim[0]
