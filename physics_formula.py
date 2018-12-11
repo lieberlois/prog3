@@ -130,9 +130,9 @@ def calc_absolute_speed(body_index, masses, positions):
     my_mass, my_position = masses[body_index], positions[body_index]
     mass_focus_ignored = calc_mass_focus_ignore(body_index, masses, positions)
 
-    r_vector = np.linalg.norm(my_position - mass_focus_ignored)
+    abs_r = np.linalg.norm(my_position - mass_focus_ignored)
     return ((total_mass(masses) - my_mass) /
-            total_mass(masses))*np.sqrt(G_CONSTANT*total_mass(masses)/r_vector)
+            total_mass(masses))*np.sqrt(G_CONSTANT*total_mass(masses)/abs_r)
 
 
 @jit
