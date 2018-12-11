@@ -71,12 +71,13 @@ def _initialise_bodies(nr_of_bodies, mass_lim, dis_lim, rad_lim, black_weight):
         x_pos = uniform(min_distance, max_distance) * _get_sign()
         y_pos = uniform(min_distance,
                         np.sqrt(max_distance**2 - x_pos**2))*_get_sign()
+        z_pos = uniform(0, max_z) * _get_sign()
         # Note: y_pos gets randomly generated between the min distance and
         #       the distance so that the length of the (x, y) vector
         #       is never longer than max_distance.
         positions[i] = np.array([x_pos,
                                  y_pos,
-                                 uniform(0, max_z) * _get_sign()])
+                                 z_pos])
 
         mass[i] = uniform(min_mass, max_mass)
         radius[i] = uniform(min_radius, max_radius)

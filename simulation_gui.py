@@ -42,7 +42,8 @@ class SimulationGUI(QtWidgets.QMainWindow):
         self.renderer_conn, self.simulation_conn = None, None
         self.render_process = None
         self.simulation_process = None
-        multiprocessing.set_start_method('spawn')
+        #multiprocessing.set_start_method('spawn')
+        
 
     def start_simulation(self):
         """
