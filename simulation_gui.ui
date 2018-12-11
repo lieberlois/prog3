@@ -47,14 +47,14 @@
      <item row="5" column="1">
       <widget class="QLineEdit" name="maxDistanceZValue">
        <property name="text">
-        <string>40000000000</string>
+        <string>4e10</string>
        </property>
       </widget>
      </item>
      <item row="7" column="1">
       <widget class="QLineEdit" name="minMassLineEdit">
        <property name="text">
-        <string>10000000000000000</string>
+        <string>1e16</string>
        </property>
       </widget>
      </item>
@@ -104,7 +104,7 @@
      <item row="3" column="1">
       <widget class="QLineEdit" name="maxDistanceLineEdit">
        <property name="text">
-        <string>149597870700</string>
+        <string>1.496e11</string>
        </property>
       </widget>
      </item>
@@ -191,7 +191,7 @@
      <item row="8" column="1">
       <widget class="QLineEdit" name="maxMassLineEdit">
        <property name="text">
-        <string>10000000000000000000000</string>
+        <string>1e24</string>
        </property>
       </widget>
      </item>
@@ -211,7 +211,7 @@
      <item row="11" column="1">
       <widget class="QLineEdit" name="maxRadiusLineEdit">
        <property name="text">
-        <string>4000000000</string>
+        <string>4e9</string>
        </property>
       </widget>
      </item>
@@ -239,7 +239,7 @@
      <item row="13" column="1">
       <widget class="QLineEdit" name="blackHoleWeightLineEdit">
        <property name="text">
-        <string>200000000000000000000000000000</string>
+        <string>2e29</string>
        </property>
       </widget>
      </item>
@@ -259,14 +259,14 @@
      <item row="2" column="1">
       <widget class="QLineEdit" name="minDistanceLineEdit">
        <property name="text">
-        <string>10000000000</string>
+        <string>1e10</string>
        </property>
       </widget>
      </item>
      <item row="10" column="1">
       <widget class="QLineEdit" name="minRadiusLineEdit">
        <property name="text">
-        <string>1000000000</string>
+        <string>1e9</string>
        </property>
       </widget>
      </item>
@@ -306,6 +306,7 @@
   <tabstop>minRadiusLineEdit</tabstop>
   <tabstop>maxRadiusLineEdit</tabstop>
   <tabstop>blackHoleWeightLineEdit</tabstop>
+  <tabstop>timestepValue</tabstop>
   <tabstop>startButton</tabstop>
   <tabstop>quitButton</tabstop>
  </tabstops>

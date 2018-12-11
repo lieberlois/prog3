@@ -42,6 +42,8 @@ class SimulationGUI(QtWidgets.QMainWindow):
         self.renderer_conn, self.simulation_conn = None, None
         self.render_process = None
         self.simulation_process = None
+
+        #This caused a bug where the multiprocessing context was already set:
         #multiprocessing.set_start_method('spawn')
         
 
