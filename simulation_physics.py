@@ -21,6 +21,7 @@
 #
 import sys
 from random import uniform, random
+import time
 import numpy as np
 import physics_formula as pf
 import simulation_constants as sc
@@ -39,12 +40,13 @@ def _move_bodies_circle(positions, speed, mass, timestep):
                                                  positions[i],
                                                  mass_foc_pos)
         accel = pf.calc_acceleration(grav_force, mass[i])
-        speed[i] = speed[i] + timestep * accel
         positions[i] = pf.next_location(positions[i], speed[i],
                                         accel, timestep)
+        speed[i] = speed[i] + timestep * accel
 
 
 def _initialise_bodies(nr_of_bodies, mass_lim, dis_lim, rad_lim, black_weight):
+    duration = time.time()
     min_mass = mass_lim[0]
     max_mass = mass_lim[1]
     min_radius = rad_lim[0]

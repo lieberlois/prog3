@@ -52,16 +52,16 @@ class SimulationGUI(QtWidgets.QMainWindow):
         """
         self.stop_simulation()
         nr_of_planets = self.ui.nrPlanetSpinBox.value()
-        mass_lim = (float(str(self.ui.minMassLineEdit.text())),\
-                    float(str(self.ui.maxMassLineEdit.text())))
-        dis_lim = (float(str(self.ui.minDistanceLineEdit.text())),\
-                   float(str(self.ui.maxDistanceLineEdit.text())),\
-                   float(str(self.ui.maxDistanceZValue.text())))
-        rad_lim = (float(str(self.ui.minRadiusLineEdit.text())), \
-                   float(str(self.ui.maxRadiusLineEdit.text())))
-        black_weight = float(str(self.ui.blackHoleWeightLineEdit.text()))
+        mass_lim = (float(self.ui.minMassLineEdit.text()),\
+                    float(self.ui.maxMassLineEdit.text()))
+        dis_lim = (float(self.ui.minDistanceLineEdit.text())),\
+                   float(self.ui.maxDistanceLineEdit.text()),\
+                   float(self.ui.maxDistanceZValue.text())
+        rad_lim = (float(self.ui.minRadiusLineEdit.text())), \
+                   float(self.ui.maxRadiusLineEdit.text())
+        black_weight = float(self.ui.blackHoleWeightLineEdit.text())
 
-        timestep = float(str(self.ui.timestepValue.text()))
+        timestep = float(self.ui.timestepValue.text())
 
         self.renderer_conn, self.simulation_conn = multiprocessing.Pipe()
         self.simulation_process = \
