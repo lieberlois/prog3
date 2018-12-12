@@ -22,4 +22,3 @@
 # message to signal a process to terminate
 END_MESSAGE = 'End_of_the_universe'
 G_CONSTANT = 6.673e-11
-
