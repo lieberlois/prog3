@@ -30,7 +30,16 @@ __FPS = 60
 __DELTA_ALPHA = 0.01
 
 def _move_bodies_circle(positions, speed, mass, timestep):
-    # This function will be responsible for setting new positions.
+    """
+    Iteriert durch alle Körper und berechnet 
+    ihre neue Geschwindigkeit und Position.
+
+    params:
+        positions: NumPy-Array aller Positionen der Körper
+        speed: NumPy-Array aller Geschwindigkeiten der Körper
+        mass: NumPy-Array aller Massen der Körper
+        timestep: Anzahl der Sekunden pro berechnetem Schritt
+    """
     for i in range(mass.size):
         mass_foc_pos = pf.calc_mass_focus_ignore(i, mass, positions)
         mass_foc_weight = np.sum(mass) - mass[i]
@@ -43,10 +52,16 @@ def _move_bodies_circle(positions, speed, mass, timestep):
                                         accel, timestep)
         speed[i] = speed[i] + timestep * accel
 
-def _get_sign():
-    return 1 if random() >= 0.5 else -1
-
 def _initialise_bodies(nr_of_bodies, mass_lim, dis_lim, rad_lim, black_weight):
+	"""
+	Initialisiert eine Anzahl von Körpern mit zufälligen Massen
+	und Positionen. Außerdem wird jedem Planeten eine 
+	Startgeschwindigkeit zugeteilt, sodass insgesamt ein 
+	stabiles System entsteht.
+
+	params:
+	    nr_of_bodies: Anzahl der zu generierenden Planeten
+	"""
     duration = time.time()
     min_mass = mass_lim[0]
     max_mass = mass_lim[1]
@@ -91,6 +106,14 @@ def _initialise_bodies(nr_of_bodies, mass_lim, dis_lim, rad_lim, black_weight):
 
 
 def _get_sign():
+	"""
+	Generiert ein zufälliges Vorzeichen -/+
+	um bei der Initialisierung alle 4 Quadranten
+	mit Planeten zu füllen.
+
+	return:
+	    +1 / -1 
+	"""
     return 1 if random() >= 0.5 else -1
 
 
