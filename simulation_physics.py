@@ -21,18 +21,18 @@
 #
 import sys
 from random import uniform, random
-import time
 import numpy as np
+from numba import jit
 import physics_formula as pf
 import simulation_constants as sc
 
 __FPS = 60
 __DELTA_ALPHA = 0.01
 
-
+@jit
 def _move_bodies_circle(positions, speed, mass, timestep):
     """
-    Iteriert durch alle Körper und berechnet 
+    Iteriert durch alle Körper und berechnet
     ihre neue Geschwindigkeit und Position.
 
     params:
@@ -42,29 +42,41 @@ def _move_bodies_circle(positions, speed, mass, timestep):
         timestep: Anzahl der Sekunden pro berechnetem Schritt
     """
     for i in range(mass.size):
-        mass_foc_pos = pf.calc_mass_focus_ignore(i, mass, positions)
+
+        # MASS FOCUS POSITION
+        tmp_loc = np.zeros(3, dtype=np.float64)
+        for j in range(mass.size):
+            if j == i:
+                continue
+            tmp_loc = tmp_loc + (mass[j] * positions[j])
+        mass_foc_pos = tmp_loc/(np.sum(mass) - mass[i])
         mass_foc_weight = np.sum(mass) - mass[i]
-        grav_force = pf.calc_gravitational_force(mass[i],
-                                                 mass_foc_weight,
-                                                 positions[i],
-                                                 mass_foc_pos)
-        accel = pf.calc_acceleration(grav_force, mass[i])
-        positions[i] = pf.next_location(positions[i], speed[i],
-                                        accel, timestep)
+        
+        # G FORCE
+        delta_pos = mass_foc_pos - positions[i]
+        absolute_dpos = np.linalg.norm(delta_pos)
+        grav_force = sc.G_CONSTANT * (((mass[i])/absolute_dpos**3)*mass_foc_weight) * (delta_pos)
+        
+        # ACCELERATION
+        accel = grav_force/mass[i]
+
+        # NEXT LOCATION
+        positions[i] = positions[i] + timestep * speed[i] + (timestep**2/2)*accel
+        
+        # SPEED
         speed[i] = speed[i] + timestep * accel
 
-
+@jit
 def _initialise_bodies(nr_of_bodies, mass_lim, dis_lim, rad_lim, black_weight):
-	"""
-	Initialisiert eine Anzahl von Körpern mit zufälligen Massen
-	und Positionen. Außerdem wird jedem Planeten eine 
-	Startgeschwindigkeit zugeteilt, sodass insgesamt ein 
-	stabiles System entsteht.
+    """
+    Initialisiert eine Anzahl von Körpern mit zufälligen Massen
+    und Positionen. Außerdem wird jedem Planeten eine
+    Startgeschwindigkeit zugeteilt, sodass insgesamt ein
+    stabiles System entsteht.
 
-	params:
-	    nr_of_bodies: Anzahl der zu generierenden Planeten
-	"""
-    duration = time.time()
+    params:
+        nr_of_bodies: Anzahl der zu generierenden Planeten
+    """
     min_mass = mass_lim[0]
     max_mass = mass_lim[1]
     min_radius = rad_lim[0]
@@ -108,14 +120,14 @@ def _initialise_bodies(nr_of_bodies, mass_lim, dis_lim, rad_lim, black_weight):
 
 
 def _get_sign():
-	"""
-	Generiert ein zufälliges Vorzeichen -/+
-	um bei der Initialisierung alle 4 Quadranten
-	mit Planeten zu füllen.
+    """
+    Generiert ein zufälliges Vorzeichen -/+
+    um bei der Initialisierung alle 4 Quadranten
+    mit Planeten zu füllen.
 
-	return:
-	    +1 / -1 
-	"""
+    return:
+        +1 / -1
+    """
     return 1 if random() >= 0.5 else -1
 
 
