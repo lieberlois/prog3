@@ -84,11 +84,7 @@ cdef void _move_bodies_circle(double[:, ::1] positions,
         accumulator = 0.0
         for j in range(3):
 
-            # PROBLEM IS HERE
-            # when j equals 2 mass_foc_weight has 3 more values
             mass_foc_pos[j] = tmp_loc[j]/mass_foc_weight
-
-
             delta_pos[j] = mass_foc_pos[j] - positions[i, j]
             accumulator += delta_pos[j]*delta_pos[j]
         abs_delta_pos = sqrt(accumulator)
