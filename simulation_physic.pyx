@@ -40,7 +40,7 @@ cdef double G_CONSTANT = 6.673e-11
 cdef void _move_bodies_circle(double[:, ::1] positions,
                               double[:, ::1] speed,
                               double[::1] mass,
-                              int timestep):
+                              double timestep):
     """
     Iteriert durch alle Körper und berechnet
     ihre neue Geschwindigkeit und Position.
@@ -64,15 +64,6 @@ cdef void _move_bodies_circle(double[:, ::1] positions,
     cdef double abs_delta_pos
 
     for i in range(1, mass.shape[0]):
-        # TODO: np.empty isnt necessary, just a reset to (0,0,0) Tuples
-        # Issue was that x, y kept being added on another without resetting every time
-        tmp_loc = np.empty(3, dtype=np.float64)
-        mass_foc_pos = np.empty(3, dtype=np.float64)
-        delta_pos = np.empty(3, dtype=np.float64)
-        grav_force = np.empty(3, dtype=np.float64)
-        accel = np.empty(3, dtype=np.float64)
-        tot_mass = 0.0
-        accumulator = 0.0
         '''
         Idea to optimise mass focus positions calculation:
             calculate it once and then add and subtract the right
@@ -80,6 +71,8 @@ cdef void _move_bodies_circle(double[:, ::1] positions,
             through this current loop every time! O(mass.shape[0]**2)
         '''
         # MASS FOCUS POSITION
+        tot_mass = 0.0
+        tmp_loc = np.empty(3, dtype=np.float64)
         for j in range(mass.shape[0]):
             tot_mass += mass[j]
             if j == i:
@@ -88,17 +81,20 @@ cdef void _move_bodies_circle(double[:, ::1] positions,
                 tmp_loc[c] = tmp_loc[c] + mass[j]*positions[j, c]
 
         mass_foc_weight = tot_mass - mass[i]
+        accumulator = 0.0
         for j in range(3):
+
+            # PROBLEM IS HERE
+            # when j equals 2 mass_foc_weight has 3 more values
             mass_foc_pos[j] = tmp_loc[j]/mass_foc_weight
 
-        # G FORCE
-        for j in range(3):
+
             delta_pos[j] = mass_foc_pos[j] - positions[i, j]
             accumulator += delta_pos[j]*delta_pos[j]
         abs_delta_pos = sqrt(accumulator)
 
         for j in range(3):
-            # ACTUAL G FORCE CALCULATION
+            # G FORCE
             grav_force[j] = G_CONSTANT * ((mass[i]/(abs_delta_pos*abs_delta_pos*abs_delta_pos))*mass_foc_weight) * delta_pos[j]
             # ACCELERATION
             accel[j] = grav_force[j] / mass[i]
@@ -106,6 +102,7 @@ cdef void _move_bodies_circle(double[:, ::1] positions,
             positions[i, j] = positions[i, j] + timestep * speed[i, j] + (timestep**2/2) + accel[j]
             # SPEED
             speed[i, j] = speed[i, j] + timestep * accel[j]
+        # sys.exit(0)
 
 
 def _initialise_bodies(nr_of_bodies, mass_lim, dis_lim, rad_lim, black_weight):
