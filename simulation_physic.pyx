@@ -64,7 +64,15 @@ cdef void _move_bodies_circle(double[:, ::1] positions,
     cdef double abs_delta_pos
 
     for i in range(1, mass.shape[0]):
-        #tot_mass = mass[0]
+        # TODO: np.empty isnt necessary, just a reset to (0,0,0) Tuples
+        # Issue was that x, y kept being added on another without resetting every time
+        tmp_loc = np.empty(3, dtype=np.float64)
+        mass_foc_pos = np.empty(3, dtype=np.float64)
+        delta_pos = np.empty(3, dtype=np.float64)
+        grav_force = np.empty(3, dtype=np.float64)
+        accel = np.empty(3, dtype=np.float64)
+        tot_mass = 0.0
+        accumulator = 0.0
         '''
         Idea to optimise mass focus positions calculation:
             calculate it once and then add and subtract the right

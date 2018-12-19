@@ -1,5 +1,6 @@
 from distutils.core import setup
 from Cython.Build import cythonize
+import numpy as np
 '''
 ext_modules = [
         Extension(FILE_NAME,
@@ -11,5 +12,6 @@ ext_modules = [
         ]
 '''
 setup(
+	include_dirs = [np.get_include()], 
     ext_modules=cythonize("simulation_physic.pyx", annotate=True)
 )

@@ -47,6 +47,8 @@ class SimulationGUI(QtWidgets.QMainWindow):
         """
             Start simulation and render process connected with a pipe.
         """
+        #self.stop_simulation()
+
         self.stop_simulation()
         nr_of_planets = self.ui.nrPlanetSpinBox.value()
         mass_lim = (float(self.ui.minMassLineEdit.text()),\
@@ -71,7 +73,6 @@ class SimulationGUI(QtWidgets.QMainWindow):
             multiprocessing.Process(target=galaxy_renderer.startup,
                                     args=(self.renderer_conn, 60), )
 
-        # self.close()
         self.simulation_process.start()
         self.render_process.start()
 
@@ -94,6 +95,7 @@ class SimulationGUI(QtWidgets.QMainWindow):
         """
         self.stop_simulation()
         self.close()
+        sys.exit()
 
 
 def _main(argv):
