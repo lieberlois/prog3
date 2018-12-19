@@ -59,31 +59,31 @@ cdef void _move_bodies_circle(double[:, ::1] positions,
     cdef double[::1] grav_force = np.empty(3, dtype=np.float64)
     cdef double[::1] accel = np.empty(3, dtype=np.float64)
     cdef double mass_foc_weight
-    cdef double tot_mass = 0.0
+    cdef double my_mass
     cdef double accumulator = 0.0
     cdef double abs_delta_pos
 
     for i in range(1, mass.shape[0]):
         '''
-        Idea to optimise mass focus positions calculation:
+        Idea to optimise mass focus positions calculation
+        and mass focus weight calculation:
             calculate it once and then add and subtract the right
             values each time you go through the loop, instead of going
             through this current loop every time! O(mass.shape[0]**2)
         '''
         # MASS FOCUS POSITION
-        tot_mass = 0.0
-        tmp_loc = np.empty(3, dtype=np.float64)
+        my_mass = mass[i]
+        mass_foc_weight = 0.0
+        tmp_loc = np.empty(3, dtype=np.float64) # maybe np.zeros?
         for j in range(mass.shape[0]):
-            tot_mass += mass[j]
             if j == i:
                 continue
+            mass_foc_weight += mass[j]
             for c in range(3): # range 3 because 3 dimensional vectors
                 tmp_loc[c] = tmp_loc[c] + mass[j]*positions[j, c]
 
-        mass_foc_weight = tot_mass - mass[i]
         accumulator = 0.0
         for j in range(3):
-
             mass_foc_pos[j] = tmp_loc[j]/mass_foc_weight
             delta_pos[j] = mass_foc_pos[j] - positions[i, j]
             accumulator += delta_pos[j]*delta_pos[j]
@@ -91,14 +91,13 @@ cdef void _move_bodies_circle(double[:, ::1] positions,
 
         for j in range(3):
             # G FORCE
-            grav_force[j] = G_CONSTANT * ((mass[i]/(abs_delta_pos*abs_delta_pos*abs_delta_pos))*mass_foc_weight) * delta_pos[j]
+            grav_force[j] = G_CONSTANT * ((my_mass/(abs_delta_pos*abs_delta_pos*abs_delta_pos))*mass_foc_weight) * delta_pos[j]
             # ACCELERATION
-            accel[j] = grav_force[j] / mass[i]
+            accel[j] = grav_force[j] / my_mass
             # NEXT LOCATION
-            positions[i, j] = positions[i, j] + timestep * speed[i, j] + (timestep**2/2) + accel[j]
+            positions[i, j] = positions[i, j] + timestep * speed[i, j] + (timestep*timestep/2.0) * accel[j]
             # SPEED
             speed[i, j] = speed[i, j] + timestep * accel[j]
-        # sys.exit(0)
 
 
 def _initialise_bodies(nr_of_bodies, mass_lim, dis_lim, rad_lim, black_weight):
