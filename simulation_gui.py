@@ -22,7 +22,7 @@ import multiprocessing
 
 
 from PyQt5 import QtWidgets, uic
-import simulation_physics
+import simulation_physic
 import galaxy_renderer
 from simulation_constants import END_MESSAGE
 
@@ -43,9 +43,6 @@ class SimulationGUI(QtWidgets.QMainWindow):
         self.render_process = None
         self.simulation_process = None
 
-        #This caused a bug where the multiprocessing context was already set:
-        #multiprocessing.set_start_method('spawn')
-
     def start_simulation(self):
         """
             Start simulation and render process connected with a pipe.
@@ -65,7 +62,7 @@ class SimulationGUI(QtWidgets.QMainWindow):
 
         self.renderer_conn, self.simulation_conn = multiprocessing.Pipe()
         self.simulation_process = \
-            multiprocessing.Process(target=simulation_physics.startup,
+            multiprocessing.Process(target=simulation_physic.startup,
                                     args=(self.simulation_conn,
                                           nr_of_planets,
                                           mass_lim, dis_lim,

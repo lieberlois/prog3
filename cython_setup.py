@@ -1,6 +1,6 @@
 from distutils.core import setup
 from Cython.Build import cythonize
-
+'''
 ext_modules = [
         Extension(FILE_NAME,
         	      sources=[FILE_NAME + ".pyx"],
@@ -9,7 +9,7 @@ ext_modules = [
         	      extra_link_args=['-fopenmp']
         	      )
         ]
-
+'''
 setup(
-    ext_modules=cythonize(ext_modules, annotate=True)
+    ext_modules=cythonize("simulation_physic.pyx", annotate=True)
 )
