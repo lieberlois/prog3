@@ -20,11 +20,12 @@
 # or open http://www.fsf.org/licensing/licenses/gpl.html
 #
 import sys
-from random import uniform, random # TODO: C libs
+from random import uniform # TODO: C libs
 import numpy as np
 cimport numpy as np
 cimport cython
 from libc.math cimport sqrt
+from libc.stdlib cimport rand, RAND_MAX
 
 import physics_formula as pf
 import simulation_constants as sc
@@ -151,7 +152,8 @@ def _initialise_bodies(nr_of_bodies, mass_lim, dis_lim, rad_lim, black_weight):
     return positions, speed, radius, mass
 
 
-def _get_sign():
+@cython.cdivision(True)
+cdef _get_sign():
     """
     Generiert ein zufälliges Vorzeichen -/+
     um bei der Initialisierung alle 4 Quadranten
@@ -160,7 +162,7 @@ def _get_sign():
     return:
         +1 / -1
     """
-    return 1 if random() >= 0.5 else -1
+    return 1 if (<double>rand()/<double>RAND_MAX) >= 0.5 else -1
 
 
 cpdef startup(sim_pipe, nr_of_bodies, mass_lim, dis_lim, rad_lim, black_weight, timestep):
@@ -173,6 +175,11 @@ cpdef startup(sim_pipe, nr_of_bodies, mass_lim, dis_lim, rad_lim, black_weight, 
             sim_pipe (multiprocessing.Pipe): Pipe to send results
             delta_t (float): Simulation step width.
     """
+
+    cdef double[:, ::1] positions = np.empty((nr_of_bodies+1, 3), dtype=np.float64)
+    cdef double[:, ::1] speed = np.empty((nr_of_bodies+1, 3), dtype=np.float64)
+    cdef double[::1] radius = np.empty(nr_of_bodies+1, dtype=np.float64)
+    cdef double[::1] mass = np.empty(nr_of_bodies+1, dtype=np.float64)
 
     positions, speed, radius, mass = _initialise_bodies(nr_of_bodies,
                                                         mass_lim,

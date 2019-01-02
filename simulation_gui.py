@@ -53,11 +53,11 @@ class SimulationGUI(QtWidgets.QMainWindow):
         nr_of_planets = self.ui.nrPlanetSpinBox.value()
         mass_lim = (float(self.ui.minMassLineEdit.text()),\
                     float(self.ui.maxMassLineEdit.text()))
-        dis_lim = (float(self.ui.minDistanceLineEdit.text())),\
+        dis_lim = (float(self.ui.minDistanceLineEdit.text()),\
                    float(self.ui.maxDistanceLineEdit.text()),\
-                   float(self.ui.maxDistanceZValue.text())
-        rad_lim = (float(self.ui.minRadiusLineEdit.text())), \
-                   float(self.ui.maxRadiusLineEdit.text())
+                   float(self.ui.maxDistanceZValue.text()))
+        rad_lim = (float(self.ui.minRadiusLineEdit.text()), \
+                   float(self.ui.maxRadiusLineEdit.text()))
         black_weight = float(self.ui.blackHoleWeightLineEdit.text())
 
         timestep = float(self.ui.timestepValue.text())
