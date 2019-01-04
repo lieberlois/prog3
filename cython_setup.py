@@ -18,7 +18,7 @@ FILE_NAME = "simulation_physic"
 ext_modules = [
         Extension(FILE_NAME,
                   sources=[FILE_NAME + ".pyx"],
-                  libraries=["m"],
+                  libraries=[],
                   extra_compile_args=['-fopenmp'],
                   extra_link_args=['-fopenmp'],
                   include_dirs=[np.get_include()]
