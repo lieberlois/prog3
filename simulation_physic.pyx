@@ -22,6 +22,7 @@
 import sys
 from random import uniform # TODO: C libs
 import numpy as np
+import time
 cimport numpy as np
 cimport cython
 from libc.math cimport sqrt
@@ -106,7 +107,7 @@ cdef void _move_bodies_circle(double[:, ::1] positions,
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.cdivision(True)
-cdef _initialise_bodies(int nr_of_bodies, mass_lim, dis_lim, rad_lim, double black_weight):
+cdef _initialise_bodies(int nr_of_bodies, tuple mass_lim, tuple dis_lim, tuple rad_lim, double black_weight):
     """
     Initialisiert eine Anzahl von Körpern mit zufälligen Massen
     und Positionen. Außerdem wird jedem Planeten eine
@@ -161,7 +162,7 @@ cdef _initialise_bodies(int nr_of_bodies, mass_lim, dis_lim, rad_lim, double bla
     
     cdef int i, j
 
-    print("generating bodies...")
+    cdef float timing = time.time()
 
     for i in range(1, nr_of_bodies+1):
         #TODO: This always produces the same numbers!
@@ -191,8 +192,10 @@ cdef _initialise_bodies(int nr_of_bodies, mass_lim, dis_lim, rad_lim, double bla
         radius[i] = uniform(min_radius, max_radius)
 
 
-    print("calculating starting speeds...")
+    print(f"generated planets in {(time.time()-timing)} nanoseconds")
 
+
+    timing = time.time()
     # CALCULATING TOTAL MASS
     for i in range(nr_of_bodies):
         tot_mass += mass[i]
@@ -232,6 +235,7 @@ cdef _initialise_bodies(int nr_of_bodies, mass_lim, dis_lim, rad_lim, double bla
         speed[i][1] = cross_product[1] / accumulator * abs_speed
         speed[i][2] = cross_product[2] / accumulator * abs_speed
 
+    print(f"calculated starting speeds in {(time.time()-timing)} nanoseconds")
 
     return positions, speed, radius, mass
 
@@ -255,7 +259,7 @@ cdef int _get_sign():
     return 1 if (<double>rand()/<double>RAND_MAX) >= 0.5 else -1
 
 
-cpdef startup(sim_pipe, nr_of_bodies, mass_lim, dis_lim, rad_lim, black_weight, timestep):
+cpdef void startup(sim_pipe, int nr_of_bodies, tuple mass_lim, tuple dis_lim, tuple rad_lim, black_weight, double timestep):
     """
         Initialise and continuously update a position list.
 
