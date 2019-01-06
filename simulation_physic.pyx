@@ -26,6 +26,7 @@ cimport numpy as np
 cimport cython
 from libc.math cimport sqrt
 from libc.stdlib cimport rand, RAND_MAX, srand
+from cython.parallel import prange
 
 import physics_formula as pf
 import simulation_constants as sc
@@ -54,14 +55,14 @@ cdef void _move_bodies_circle(double[:, ::1] positions,
     """
 
     cdef np.intp_t i, j
-    cdef double[::1] tmp_loc = np.empty(3, dtype=np.float64)
-    cdef double[::1] delta_pos = np.empty(3, dtype=np.float64)
-    cdef double[::1] accel = np.empty(3, dtype=np.float64)
+    cdef double[::1] tmp_loc = np.zeros(3, dtype=np.float64)
+    cdef double[::1] delta_pos = np.zeros(3, dtype=np.float64)
+    cdef double[::1] accel = np.zeros(3, dtype=np.float64)
     cdef double mass_foc_weight
     cdef double accumulator = 0.0
     cdef double abs_delta_pos
 
-    for i in range(1, mass.shape[0]):
+    for i in prange(1, mass.shape[0], nogil=True):
         '''
         Idea to optimise mass focus positions calculation
         and mass focus weight calculation:
@@ -71,11 +72,13 @@ cdef void _move_bodies_circle(double[:, ::1] positions,
         '''
         # MASS FOCUS POSITION
         mass_foc_weight = 0.0
-        tmp_loc = np.zeros(3, dtype=np.float64)
+        tmp_loc[0] = 0
+        tmp_loc[1] = 0
+        tmp_loc[2] = 0
         for j in range(mass.shape[0]):
             if j == i:
                 continue
-            mass_foc_weight += mass[j]
+            mass_foc_weight = mass_foc_weight + mass[j]
 
             tmp_loc[0] = tmp_loc[0] + mass[j] * positions[j][0]
             tmp_loc[1] = tmp_loc[1] + mass[j] * positions[j][1]
@@ -87,7 +90,7 @@ cdef void _move_bodies_circle(double[:, ::1] positions,
 
             delta_pos[j] = tmp_loc[j] - positions[i, j]
 
-            accumulator += delta_pos[j]*delta_pos[j]
+            accumulator = accumulator + delta_pos[j]*delta_pos[j]
 
         abs_delta_pos = sqrt(accumulator)
 
