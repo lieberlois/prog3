@@ -30,8 +30,8 @@ from libc.stdlib cimport rand, RAND_MAX, srand
 import physics_formula as pf
 import simulation_constants as sc
 
-__FPS = 60
-__DELTA_ALPHA = 0.01
+cdef int __FPS = 60
+cdef double __DELTA_ALPHA = 0.01
 cdef double G_CONSTANT = 6.673e-11
 
 
@@ -71,7 +71,7 @@ cdef void _move_bodies_circle(double[:, ::1] positions,
         '''
         # MASS FOCUS POSITION
         mass_foc_weight = 0.0
-        tmp_loc = np.empty(3, dtype=np.float64) # maybe np.zeros?
+        tmp_loc = np.zeros(3, dtype=np.float64)
         for j in range(mass.shape[0]):
             if j == i:
                 continue
@@ -103,7 +103,7 @@ cdef void _move_bodies_circle(double[:, ::1] positions,
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.cdivision(True)
-cpdef _initialise_bodies(int nr_of_bodies, mass_lim, dis_lim, rad_lim, double black_weight):
+cdef _initialise_bodies(int nr_of_bodies, mass_lim, dis_lim, rad_lim, double black_weight):
     """
     Initialisiert eine Anzahl von Körpern mit zufälligen Massen
     und Positionen. Außerdem wird jedem Planeten eine
@@ -113,13 +113,13 @@ cpdef _initialise_bodies(int nr_of_bodies, mass_lim, dis_lim, rad_lim, double bl
     params:
         nr_of_bodies: Anzahl der zu generierenden Planeten
     """
-    min_mass = mass_lim[0]
-    max_mass = mass_lim[1]
-    min_radius = rad_lim[0]
-    max_radius = rad_lim[1]
-    min_distance = dis_lim[0]
-    max_distance = dis_lim[1]
-    max_z = dis_lim[2]
+    cdef double min_mass = mass_lim[0]
+    cdef double max_mass = mass_lim[1]
+    cdef double min_radius = rad_lim[0]
+    cdef double max_radius = rad_lim[1]
+    cdef double min_distance = dis_lim[0]
+    cdef double max_distance = dis_lim[1]
+    cdef double max_z = dis_lim[2]
 
     black_hole_weight = black_weight
 
@@ -130,6 +130,21 @@ cpdef _initialise_bodies(int nr_of_bodies, mass_lim, dis_lim, rad_lim, double bl
     cdef double[::1] mass = np.zeros((nr_of_bodies+1), dtype=np.float64)
     
     cdef double[::1] tmp_speed = np.zeros((nr_of_bodies+1), dtype=np.float64)
+
+    ### VARIABLES NEEDED FOR THE CALCULATION OF ABSOLUTE SPEED
+    cdef double tot_mass_ignored = 0.0
+    cdef double tot_mass = 0.0
+    cdef double accumulator = 0.0
+    cdef double abs_delta
+    cdef double[::1] tmp_loc = np.empty(3, dtype=np.float64)
+    cdef double[::1] delta_pos = np.empty(3, dtype=np.float64)
+    cdef double abs_speed
+
+    ### VARIABLES NEEDED FOR THE CALCULATION OF SPEED DIRECTION
+    cdef int[::1] z_vector = np.array([0, 0, 1], dtype=np.int32)
+    cdef double[::1] cross_product = np.empty(3, dtype=np.float64)
+
+
 
     # Black Hole
     positions[0][0] = 0
@@ -175,23 +190,57 @@ cpdef _initialise_bodies(int nr_of_bodies, mass_lim, dis_lim, rad_lim, double bl
 
     print("calculating starting speeds...")
 
-    
+    # CALCULATING TOTAL MASS
+    for i in range(nr_of_bodies):
+        tot_mass += mass[i]
+
     for i in range(1, nr_of_bodies+1):
-        #Todo: Move pf.calc_speed_direction over here and cythonize it
-        #tmp_speed = pf.calc_speed_direction(i, mass, positions)
-        tmp_speed = pf.calc_speed_direction(i, np.asarray(mass), np.asarray(positions))
-        
-        speed[i][0] = tmp_speed[0]
-        speed[i][1] = tmp_speed[1]
-        speed[i][2] = tmp_speed[2]
+        # ABSOLUTE SPEED CALCULATION STARTS HERE
+        tot_mass_ignored = 0.0
+        tmp_loc[0] = 0.0
+        tmp_loc[1] = 0.0
+        tmp_loc[2] = 0.0
+        for j in range(nr_of_bodies+1):
+            if j == i:
+                continue
+            tot_mass_ignored += mass[j]
+            tmp_loc[0] = tmp_loc[0] + mass[j] * positions[j][0]
+            tmp_loc[1] = tmp_loc[1] + mass[j] * positions[j][1]
+            tmp_loc[2] = tmp_loc[2] + mass[j] * positions[j][2]
+
+        accumulator = 0.0
+        for j in range(3):
+            tmp_loc[j] = tmp_loc[j] / tot_mass_ignored
+            delta_pos[j] = positions[i][j] - tmp_loc[j]
+            accumulator += delta_pos[j] * delta_pos[j]
+        abs_delta = sqrt(accumulator)
+        abs_speed = (tot_mass_ignored/tot_mass)*sqrt(G_CONSTANT*tot_mass/abs_delta)
+        # ABSOLUTE SPEED CALCULATION ENDS HERE
+
+        # SPEED DIRECTION CALCULATION STARTS HERE
+        cross_product = np.cross(delta_pos, z_vector)
+        accumulator = 0.0
+        for j in range(3):
+            accumulator += cross_product[j]*cross_product[j]
+        accumulator = sqrt(accumulator)
+        # SPEED DIRECTION CALCULATION ENDS HERE
+
+        speed[i][0] = cross_product[0] / accumulator * abs_speed
+        speed[i][1] = cross_product[1] / accumulator * abs_speed
+        speed[i][2] = cross_product[2] / accumulator * abs_speed
+
 
     return positions, speed, radius, mass
+
+
+    
+    
 
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.cdivision(True)
-cpdef int _get_sign():
+cdef int _get_sign():
     """
     Generiert ein zufälliges Vorzeichen -/+
     um bei der Initialisierung alle 4 Quadranten
