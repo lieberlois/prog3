@@ -29,7 +29,6 @@ from libc.math cimport sqrt
 from libc.stdlib cimport rand, RAND_MAX, srand
 from cython.parallel import prange
 
-import physics_formula as pf
 import simulation_constants as sc
 
 cdef int __FPS = 60
@@ -140,13 +139,13 @@ cdef _initialise_bodies(int nr_of_bodies, tuple mass_lim, tuple dis_lim, tuple r
     cdef double tot_mass = 0.0
     cdef double accumulator = 0.0
     cdef double abs_delta
-    cdef double[::1] tmp_loc = np.empty(3, dtype=np.float64)
-    cdef double[::1] delta_pos = np.empty(3, dtype=np.float64)
+    cdef double[::1] tmp_loc = np.zeros(3, dtype=np.float64)
+    cdef double[::1] delta_pos = np.zeros(3, dtype=np.float64)
     cdef double abs_speed
 
     ### VARIABLES NEEDED FOR THE CALCULATION OF SPEED DIRECTION
     cdef int[::1] z_vector = np.array([0, 0, 1], dtype=np.int32)
-    cdef double[::1] cross_product = np.empty(3, dtype=np.float64)
+    cdef double[::1] cross_product = np.zeros(3, dtype=np.float64)
 
 
 
@@ -160,42 +159,40 @@ cdef _initialise_bodies(int nr_of_bodies, tuple mass_lim, tuple dis_lim, tuple r
     mass[0] = black_hole_weight
     radius[0] = 5000000000
     
-    cdef int i, j
-
-    cdef float timing = time.time()
+    cdef np.intp_t i, j
 
     for i in range(1, nr_of_bodies+1):
-        #TODO: This always produces the same numbers!
-        #Eventuelle Lösung: Selbst geschriebener Random-Generator
-        #                   aus Einzelabgabe!
-        #x_pos = (min_distance + rand()/(RAND_MAX*max_distance))*_get_sign()
-        #y_pos = (min_distance + rand()/(RAND_MAX*sqrt(max_distance**2 - x_pos**2)))*_get_sign()
-        #z_pos = (min_distance + rand()/RAND_MAX*max_z)*_get_sign()
-        
-        x_pos = uniform(min_distance, max_distance) * _get_sign()
-        y_pos = uniform(min_distance,
-                        np.sqrt(max_distance**2 - x_pos**2))*_get_sign()
-        z_pos = uniform(0, max_z) * _get_sign()
-        # Note: y_pos gets randomly generated between the min distance and
+    	# Note: y_pos gets randomly generated between the min distance and
         #       the distance so that the length of the (x, y) vector
         #       is never longer than max_distance.
+        #Cython
+        x_pos = (((rand() / (RAND_MAX + 1.0))*(max_distance-min_distance))+min_distance)*_get_sign()
+        y_pos = (((rand() / (RAND_MAX + 1.0))*(sqrt(max_distance**2 - x_pos**2))+min_radius))*_get_sign()
+        z_pos = ((rand() / (RAND_MAX + 1.0))*(max_z))*_get_sign()
+        
+        #Python
+        #x_pos = uniform(min_distance, max_distance) * _get_sign()
+        #y_pos = uniform(min_distance,
+        #                sqrt(max_distance**2 - x_pos**2))*_get_sign()
+        #z_pos = uniform(0, max_z) * _get_sign()
+        
 
         positions[i][0] = x_pos
         positions[i][1] = y_pos
         positions[i][2] = z_pos
 
-        #TODO: This always produces the same numbers!
-        #mass[i] = min_mass + rand()/(RAND_MAX*max_mass)
-        #radius[i] = min_radius + rand()/(RAND_MAX*max_radius)
+        #Cython
+        mass[i] = (((rand() / (RAND_MAX + 1.0))*(max_mass-min_mass))+min_mass)
+        radius[i] = (((rand() / (RAND_MAX + 1.0))*(max_radius-min_radius))+min_radius)
         
-        mass[i] = uniform(min_mass, max_mass)
-        radius[i] = uniform(min_radius, max_radius)
+        #Python
+        #mass[i] = uniform(min_mass, max_mass)
+        #radius[i] = uniform(min_radius, max_radius)
 
 
-    print(f"generated planets in {(time.time()-timing)} nanoseconds")
+    print("generated planets")
 
 
-    timing = time.time()
     # CALCULATING TOTAL MASS
     for i in range(nr_of_bodies):
         tot_mass += mass[i]
@@ -235,7 +232,7 @@ cdef _initialise_bodies(int nr_of_bodies, tuple mass_lim, tuple dis_lim, tuple r
         speed[i][1] = cross_product[1] / accumulator * abs_speed
         speed[i][2] = cross_product[2] / accumulator * abs_speed
 
-    print(f"calculated starting speeds in {(time.time()-timing)} nanoseconds")
+    print("calculated starting speeds")
 
     return positions, speed, radius, mass
 
@@ -270,10 +267,10 @@ cpdef void startup(sim_pipe, int nr_of_bodies, tuple mass_lim, tuple dis_lim, tu
             delta_t (float): Simulation step width.
     """
 
-    cdef double[:, ::1] positions = np.empty((nr_of_bodies+1, 3), dtype=np.float64)
-    cdef double[:, ::1] speed = np.empty((nr_of_bodies+1, 3), dtype=np.float64)
-    cdef double[::1] radius = np.empty(nr_of_bodies+1, dtype=np.float64)
-    cdef double[::1] mass = np.empty(nr_of_bodies+1, dtype=np.float64)
+    cdef double[:, ::1] positions = np.zeros((nr_of_bodies+1, 3), dtype=np.float64)
+    cdef double[:, ::1] speed = np.zeros((nr_of_bodies+1, 3), dtype=np.float64)
+    cdef double[::1] radius = np.zeros(nr_of_bodies+1, dtype=np.float64)
+    cdef double[::1] mass = np.zeros(nr_of_bodies+1, dtype=np.float64)
 
     positions, speed, radius, mass = _initialise_bodies(nr_of_bodies,
                                                         mass_lim,
