@@ -58,9 +58,17 @@ cdef void _move_bodies_circle(double[:, ::1] positions,
     cdef double[::1] tmp_loc = np.zeros(3, dtype=np.float64)
     cdef double[::1] delta_pos = np.zeros(3, dtype=np.float64)
     cdef double[::1] accel = np.zeros(3, dtype=np.float64)
-    cdef double mass_foc_weight
+    cdef double[::1] mass_foc_pos = np.zeros(3, dtype=np.float64)
+    cdef double mass_foc_weight = 0.0
+    cdef double tot_mass  # maybe outside of methods
     cdef double accumulator = 0.0
     cdef double abs_delta_pos
+
+    for i in range(mass.shape[0]):
+        tot_mass = tot_mass + mass[i]
+        tmp_loc[0] = tmp_loc[0] + mass[i] * positions[i][0]
+        tmp_loc[1] = tmp_loc[1] + mass[i] * positions[i][1]
+        tmp_loc[2] = tmp_loc[2] + mass[i] * positions[i][2]
 
     for i in prange(1, mass.shape[0], nogil=True):
         '''
@@ -71,24 +79,17 @@ cdef void _move_bodies_circle(double[:, ::1] positions,
             through this current loop every time! O(mass.shape[0]**2)
         '''
         # MASS FOCUS POSITION
-        mass_foc_weight = 0.0
-        tmp_loc[0] = 0
-        tmp_loc[1] = 0
-        tmp_loc[2] = 0
-        for j in range(mass.shape[0]):
-            if j == i:
-                continue
-            mass_foc_weight = mass_foc_weight + mass[j]
 
-            tmp_loc[0] = tmp_loc[0] + mass[j] * positions[j][0]
-            tmp_loc[1] = tmp_loc[1] + mass[j] * positions[j][1]
-            tmp_loc[2] = tmp_loc[2] + mass[j] * positions[j][2]
+        mass_foc_pos[0] = tmp_loc[0] - mass[i] * positions[i][0] # new variable
+        mass_foc_pos[1] = tmp_loc[1] - mass[i] * positions[i][1]
+        mass_foc_pos[2] = tmp_loc[2] - mass[i] * positions[i][2]
+        mass_foc_weight = tot_mass - mass[i]
 
         accumulator = 0.0
         for j in range(3):
-            tmp_loc[j] = tmp_loc[j]/mass_foc_weight
+            mass_foc_pos[j] = mass_foc_pos[j]/mass_foc_weight
 
-            delta_pos[j] = tmp_loc[j] - positions[i, j]
+            delta_pos[j] = mass_foc_pos[j] - positions[i, j]
 
             accumulator = accumulator + delta_pos[j]*delta_pos[j]
 
