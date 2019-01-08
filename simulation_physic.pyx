@@ -61,8 +61,23 @@ cdef void _move_bodies_circle(double[:, ::1] positions,
     cdef double accumulator = 0.0
     cdef double abs_delta
 
+    ###TEST
+    cdef double[::1] tmp_loc = np.zeros(3, dtype=np.float64)
+    cdef double[::1] mass_foc_pos = np.zeros(3, dtype=np.float64)
+    cdef double mass_foc_weight = 0.0
+    cdef double tot_mass  # maybe outside of methods
+    cdef double abs_delta_pos
 
-    for i in prange(1, mass.shape[0], nogil=True):
+    for i in range(mass.shape[0]):
+        tot_mass = tot_mass + mass[i]
+        tmp_loc[0] = tmp_loc[0] + mass[i] * positions[i][0]
+        tmp_loc[1] = tmp_loc[1] + mass[i] * positions[i][1]
+        tmp_loc[2] = tmp_loc[2] + mass[i] * positions[i][2]
+    ###TEST
+
+
+    #for i in prange(1, mass.shape[0], nogil=True):
+    for i in range(1, mass.shape[0]):
         '''
         Idea to optimise mass focus positions calculation
         and mass focus weight calculation:
@@ -70,6 +85,31 @@ cdef void _move_bodies_circle(double[:, ::1] positions,
             values each time you go through the loop, instead of going
             through this current loop every time! O(mass.shape[0]**2)
         '''
+
+        ### TEST
+
+        mass_foc_pos[0] = tmp_loc[0] - mass[i] * positions[i][0] # new variable
+        mass_foc_pos[1] = tmp_loc[1] - mass[i] * positions[i][1]
+        mass_foc_pos[2] = tmp_loc[2] - mass[i] * positions[i][2]
+        mass_foc_weight = tot_mass - mass[i]
+
+        accumulator = 0.0
+        for j in range(3):
+            mass_foc_pos[j] = mass_foc_pos[j]/mass_foc_weight
+
+            delta_pos[j] = mass_foc_pos[j] - positions[i, j]
+
+            accumulator = accumulator + delta_pos[j]*delta_pos[j]
+
+        abs_delta_pos = sqrt(accumulator)
+        print("\n OLD")
+        for j in range(3):
+            # G FORCE TO ACCELERATION
+            accel[j] = G_CONSTANT * (mass_foc_weight/(abs_delta_pos*abs_delta_pos*abs_delta_pos)) * delta_pos[j]
+
+            print(accel[j])
+
+        ### TEST
 
         force[0] = 0.0
         force[1] = 0.0
@@ -87,7 +127,8 @@ cdef void _move_bodies_circle(double[:, ::1] positions,
             for coord in range(3):
                 force[coord] = force[coord] + mass[j]/(abs_delta*abs_delta*abs_delta)*delta_pos[coord]
 
-
+        ###TEST
+        print("\n New")
         for j in range(3):
             # G FORCE TO ACCELERATION
             accel[j] = force[j] * G_CONSTANT
@@ -95,6 +136,7 @@ cdef void _move_bodies_circle(double[:, ::1] positions,
             positions[i][j] = positions[i][j] + timestep * speed[i][j] + (timestep*timestep/2.0) * accel[j]
             # SPEED
             speed[i][j] = speed[i][j] + timestep * accel[j]
+            print(accel[j])
 
 
 @cython.boundscheck(False)
@@ -261,6 +303,7 @@ cpdef void startup(sim_pipe, int nr_of_bodies, tuple mass_lim, tuple dis_lim, tu
             if isinstance(message, str) and message == sc.END_MESSAGE:
                 print('simulation exiting ...')
                 sys.exit(0)
+
         _move_bodies_circle(positions, speed, mass, timestep)
         pos_with_radius = np.c_[positions, radius]
         sim_pipe.send(pos_with_radius * (1/dis_lim[1]))
