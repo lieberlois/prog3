@@ -54,21 +54,13 @@ cdef void _move_bodies_circle(double[:, ::1] positions,
         timestep: Anzahl der Sekunden pro berechnetem Schritt
     """
 
-    cdef np.intp_t i, j
-    cdef double[::1] tmp_loc = np.zeros(3, dtype=np.float64)
+    cdef np.intp_t i, j, coord
     cdef double[::1] delta_pos = np.zeros(3, dtype=np.float64)
     cdef double[::1] accel = np.zeros(3, dtype=np.float64)
-    cdef double[::1] mass_foc_pos = np.zeros(3, dtype=np.float64)
-    cdef double mass_foc_weight = 0.0
-    cdef double tot_mass  # maybe outside of methods
+    cdef double[::1] force = np.zeros(3, dtype=np.float64)
     cdef double accumulator = 0.0
-    cdef double abs_delta_pos
+    cdef double abs_delta
 
-    for i in range(mass.shape[0]):
-        tot_mass = tot_mass + mass[i]
-        tmp_loc[0] = tmp_loc[0] + mass[i] * positions[i][0]
-        tmp_loc[1] = tmp_loc[1] + mass[i] * positions[i][1]
-        tmp_loc[2] = tmp_loc[2] + mass[i] * positions[i][2]
 
     for i in prange(1, mass.shape[0], nogil=True):
         '''
@@ -78,26 +70,27 @@ cdef void _move_bodies_circle(double[:, ::1] positions,
             values each time you go through the loop, instead of going
             through this current loop every time! O(mass.shape[0]**2)
         '''
-        # MASS FOCUS POSITION
 
-        mass_foc_pos[0] = tmp_loc[0] - mass[i] * positions[i][0] # new variable
-        mass_foc_pos[1] = tmp_loc[1] - mass[i] * positions[i][1]
-        mass_foc_pos[2] = tmp_loc[2] - mass[i] * positions[i][2]
-        mass_foc_weight = tot_mass - mass[i]
+        force[0] = 0.0
+        force[1] = 0.0
+        force[2] = 0.0
 
-        accumulator = 0.0
-        for j in range(3):
-            mass_foc_pos[j] = mass_foc_pos[j]/mass_foc_weight
+        for j in range(mass.shape[0]):
+            if j == i:
+                continue
+            abs_delta = 0.0
+            for coord in range(3):
+                delta_pos[coord] = positions[j][coord] - positions[i][coord]
+                abs_delta = abs_delta + delta_pos[coord] * delta_pos[coord]
+            abs_delta = sqrt(abs_delta)
 
-            delta_pos[j] = mass_foc_pos[j] - positions[i, j]
+            for coord in range(3):
+                force[coord] = force[coord] + mass[j]/(abs_delta*abs_delta*abs_delta)*delta_pos[coord]
 
-            accumulator = accumulator + delta_pos[j]*delta_pos[j]
-
-        abs_delta_pos = sqrt(accumulator)
 
         for j in range(3):
             # G FORCE TO ACCELERATION
-            accel[j] = G_CONSTANT * (mass_foc_weight/(abs_delta_pos*abs_delta_pos*abs_delta_pos)) * delta_pos[j]
+            accel[j] = force[j] * G_CONSTANT
             # NEXT LOCATION
             positions[i][j] = positions[i][j] + timestep * speed[i][j] + (timestep*timestep/2.0) * accel[j]
             # SPEED
@@ -129,10 +122,10 @@ cdef _initialise_bodies(int nr_of_bodies, tuple mass_lim, tuple dis_lim, tuple r
 
     cdef double[:, ::1] positions = np.zeros((nr_of_bodies+1, 3), dtype=np.float64)
     cdef double[:, ::1] speed = np.zeros((nr_of_bodies+1, 3), dtype=np.float64)
-    
+
     cdef double[::1] radius = np.zeros((nr_of_bodies+1), dtype=np.float64)
     cdef double[::1] mass = np.zeros((nr_of_bodies+1), dtype=np.float64)
-    
+
     cdef double[::1] tmp_speed = np.zeros((nr_of_bodies+1), dtype=np.float64)
 
     ### VARIABLES NEEDED FOR THE CALCULATION OF ABSOLUTE SPEED
@@ -158,25 +151,18 @@ cdef _initialise_bodies(int nr_of_bodies, tuple mass_lim, tuple dis_lim, tuple r
     speed[0][1] = 0
     speed[0][2] = 0
     mass[0] = black_hole_weight
-    radius[0] = 5000000000
-    
+    radius[0] = max_radius
+
     cdef np.intp_t i, j
 
     for i in range(1, nr_of_bodies+1):
     	# Note: y_pos gets randomly generated between the min distance and
         #       the distance so that the length of the (x, y) vector
         #       is never longer than max_distance.
-        #Cython
         x_pos = (((rand() / (RAND_MAX + 1.0))*(max_distance-min_distance))+min_distance)*_get_sign()
         y_pos = (((rand() / (RAND_MAX + 1.0))*(sqrt(max_distance**2 - x_pos**2))+min_radius))*_get_sign()
         z_pos = ((rand() / (RAND_MAX + 1.0))*(max_z))*_get_sign()
-        
-        #Python
-        #x_pos = uniform(min_distance, max_distance) * _get_sign()
-        #y_pos = uniform(min_distance,
-        #                sqrt(max_distance**2 - x_pos**2))*_get_sign()
-        #z_pos = uniform(0, max_z) * _get_sign()
-        
+
 
         positions[i][0] = x_pos
         positions[i][1] = y_pos
@@ -185,11 +171,6 @@ cdef _initialise_bodies(int nr_of_bodies, tuple mass_lim, tuple dis_lim, tuple r
         #Cython
         mass[i] = (((rand() / (RAND_MAX + 1.0))*(max_mass-min_mass))+min_mass)
         radius[i] = (((rand() / (RAND_MAX + 1.0))*(max_radius-min_radius))+min_radius)
-        
-        #Python
-        #mass[i] = uniform(min_mass, max_mass)
-        #radius[i] = uniform(min_radius, max_radius)
-
 
     print("generated planets")
 
@@ -236,10 +217,6 @@ cdef _initialise_bodies(int nr_of_bodies, tuple mass_lim, tuple dis_lim, tuple r
     print("calculated starting speeds")
 
     return positions, speed, radius, mass
-
-
-    
-    
 
 
 @cython.boundscheck(False)
