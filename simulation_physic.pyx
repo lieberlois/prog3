@@ -39,10 +39,69 @@ cdef double G_CONSTANT = 6.673e-11
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.cdivision(True)
-cdef double[:, ::1] _move_bodies_circle(double[:, ::1] positions, #This method probably also needs to receiver a master
+cdef double[:, ::1] _move_bodies_circle(double[:, ::1] positions,
                               double[:, ::1] speed,
                               double[::1] mass,
                               double timestep):
+    """
+    Iteriert durch alle Körper und berechnet
+    ihre neue Geschwindigkeit und Position.
+
+    params:
+        positions: NumPy-Array aller Positionen der Körper
+        speed: NumPy-Array aller Geschwindigkeiten der Körper
+        mass: NumPy-Array aller Massen der Körper
+        timestep: Anzahl der Sekunden pro berechnetem Schritt
+    """
+    cdef np.intp_t i, j, coord = 0
+    cdef double[::1] delta_pos = np.zeros(3, dtype=np.float64)
+    cdef double[::1] accel = np.zeros(3, dtype=np.float64)
+    cdef double[::1] force = np.zeros(3, dtype=np.float64)
+    cdef double accumulator = 0.0
+    cdef double abs_delta = 0.0
+
+    for i in prange(1, mass.shape[0], nogil=True):
+        '''
+        Idea to optimise mass focus positions calculation
+        and mass focus weight calculation:
+            calculate it once and then add and subtract the right
+            values each time you go through the loop, instead of going
+            through this current loop every time! O(mass.shape[0]**2)
+        '''
+        force[0] = 0.0
+        force[1] = 0.0
+        force[2] = 0.0
+
+        for j in range(mass.shape[0]):
+            if j == i:
+                continue
+            abs_delta = 0.0
+            for coord in range(3):
+                delta_pos[coord] = positions[j][coord] - positions[i][coord]
+                abs_delta = abs_delta + delta_pos[coord] * delta_pos[coord]
+            abs_delta = sqrt(abs_delta)
+            for coord in range(3):
+                force[coord] = force[coord] + mass[j]/(abs_delta*abs_delta*abs_delta)*delta_pos[coord]
+
+        for j in range(3):
+            # G FORCE TO ACCELERATION
+            accel[j] = force[j] * G_CONSTANT
+            # NEXT LOCATION
+            positions[i][j] = positions[i][j] + timestep * speed[i][j] + (timestep*timestep/2.0) * accel[j]
+            # SPEED
+            speed[i][j] = speed[i][j] + timestep * accel[j]
+    return positions
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.cdivision(True)
+cpdef tuple _mp_move_bodies_circle(double[:, ::1] positions,
+                                   double[:, ::1] speed,
+                                   double[::1] mass,
+                                   double timestep,
+                                   int[::1] indexrange):
+    # This method probably also needs to receive a master
 
     # THIS LOGIC WILL MOVE IN THE WORKER
     #
@@ -73,7 +132,10 @@ cdef double[:, ::1] _move_bodies_circle(double[:, ::1] positions, #This method p
     cdef double accumulator = 0.0
     cdef double abs_delta = 0.0
 
-    for i in prange(1, mass.shape[0], nogil=True):
+    cdef int start_value = indexrange[0]
+    cdef int end_value = indexrange[indexrange.shape[0] - 1]
+
+    for i in prange(start_value, end_value, nogil=True):
         '''
         Idea to optimise mass focus positions calculation
         and mass focus weight calculation:
@@ -81,7 +143,6 @@ cdef double[:, ::1] _move_bodies_circle(double[:, ::1] positions, #This method p
             values each time you go through the loop, instead of going
             through this current loop every time! O(mass.shape[0]**2)
         '''
-
         force[0] = 0.0
         force[1] = 0.0
         force[2] = 0.0
@@ -106,15 +167,7 @@ cdef double[:, ::1] _move_bodies_circle(double[:, ::1] positions, #This method p
             # SPEED
             speed[i][j] = speed[i][j] + timestep * accel[j]
 
-    return positions
-
-
-cpdef wrap_move_bodies(positions, speed, mass, timestep, indexrange):
-    """
-    Wrapper function used to give workers a way to call move_bodies
-    """
-    # TODO: find way to add indexrange to this function
-    return _move_bodies_circle(positions, speed, mass, timestep)
+    return (positions, speed)
 
 
 @cython.boundscheck(False)
@@ -161,8 +214,6 @@ cdef _initialise_bodies(int nr_of_bodies, tuple mass_lim, tuple dis_lim, tuple r
     cdef int[::1] z_vector = np.array([0, 0, 1], dtype=np.int32)
     cdef double[::1] cross_product = np.zeros(3, dtype=np.float64)
 
-
-
     # Black Hole
     positions[0][0] = 0
     positions[0][1] = 0
@@ -183,17 +234,14 @@ cdef _initialise_bodies(int nr_of_bodies, tuple mass_lim, tuple dis_lim, tuple r
         y_pos = (((rand() / (RAND_MAX + 1.0))*(sqrt(max_distance**2 - x_pos**2))+min_radius))*_get_sign()
         z_pos = ((rand() / (RAND_MAX + 1.0))*(max_z))*_get_sign()
 
-
         positions[i][0] = x_pos
         positions[i][1] = y_pos
         positions[i][2] = z_pos
 
-        #Cython
         mass[i] = (((rand() / (RAND_MAX + 1.0))*(max_mass-min_mass))+min_mass)
         radius[i] = (((rand() / (RAND_MAX + 1.0))*(max_radius-min_radius))+min_radius)
 
     print("generated planets")
-
 
     # CALCULATING TOTAL MASS
     for i in range(nr_of_bodies):
@@ -220,7 +268,6 @@ cdef _initialise_bodies(int nr_of_bodies, tuple mass_lim, tuple dis_lim, tuple r
             accumulator += delta_pos[j] * delta_pos[j]
         abs_delta = sqrt(accumulator)
         abs_speed = (tot_mass_ignored/tot_mass)*sqrt(G_CONSTANT*tot_mass/abs_delta)
-        # ABSOLUTE SPEED CALCULATION ENDS HERE
 
         # SPEED DIRECTION CALCULATION STARTS HERE
         cross_product = np.cross(delta_pos, z_vector)
@@ -228,7 +275,6 @@ cdef _initialise_bodies(int nr_of_bodies, tuple mass_lim, tuple dis_lim, tuple r
         for j in range(3):
             accumulator += cross_product[j]*cross_product[j]
         accumulator = sqrt(accumulator)
-        # SPEED DIRECTION CALCULATION ENDS HERE
 
         speed[i][0] = cross_product[0] / accumulator * abs_speed
         speed[i][1] = cross_product[1] / accumulator * abs_speed
