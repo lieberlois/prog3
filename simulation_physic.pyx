@@ -39,7 +39,7 @@ cdef double G_CONSTANT = 6.673e-11
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.cdivision(True)
-cdef void _move_bodies_circle(double[:, ::1] positions, #This method probably also needs to receiver a master
+cdef double[:, ::1] _move_bodies_circle(double[:, ::1] positions, #This method probably also needs to receiver a master
                               double[:, ::1] speed,
                               double[::1] mass,
                               double timestep):
@@ -52,12 +52,10 @@ cdef void _move_bodies_circle(double[:, ::1] positions, #This method probably al
 
     # result = distributedMaster.calculate(positions, speed, mass, timestep)
 
-    # for planet in range(mass.shape[0]):
+    # for planet in range(1, mass.shape[0]):
     #    positions[planet][0] = result[planet][0]
     #    positions[planet][1] = result[planet][1]
     #    positions[planet][2] = result[planet][2]
-
-
     """
     Iteriert durch alle Körper und berechnet
     ihre neue Geschwindigkeit und Position.
@@ -68,7 +66,6 @@ cdef void _move_bodies_circle(double[:, ::1] positions, #This method probably al
         mass: NumPy-Array aller Massen der Körper
         timestep: Anzahl der Sekunden pro berechnetem Schritt
     """
-
     cdef np.intp_t i, j, coord = 0
     cdef double[::1] delta_pos = np.zeros(3, dtype=np.float64)
     cdef double[::1] accel = np.zeros(3, dtype=np.float64)
@@ -108,6 +105,16 @@ cdef void _move_bodies_circle(double[:, ::1] positions, #This method probably al
             positions[i][j] = positions[i][j] + timestep * speed[i][j] + (timestep*timestep/2.0) * accel[j]
             # SPEED
             speed[i][j] = speed[i][j] + timestep * accel[j]
+
+    return positions
+
+
+cpdef wrap_move_bodies(positions, speed, mass, timestep, indexrange):
+    """
+    Wrapper function used to give workers a way to call move_bodies
+    """
+    # TODO: find way to add indexrange to this function
+    return _move_bodies_circle(positions, speed, mass, timestep)
 
 
 @cython.boundscheck(False)
@@ -268,9 +275,9 @@ cpdef void startup(sim_pipe, int nr_of_bodies, tuple mass_lim, tuple dis_lim, tu
                                                         dis_lim,
                                                         rad_lim,
                                                         black_weight)
-    
+
     # TODO: This is probably the best location to initialize the distributedMaster.
- 
+
 
     while True:
         if sim_pipe.poll():

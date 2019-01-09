@@ -1,18 +1,22 @@
+from distributedManager import TaskManager
+import time
+
 def __calculate(): # This will probably receive (positions, speed, mass, timestep)
-    chunks = 50 # TODO: Find a good way to determine a reasonable chunk amount (Working Cores * 10 or similar?)
+    chunks = 50  # TODO: Find a good way to determine a reasonable chunk amount (Working Cores * 10 or similar?)
     job_queue, result_queue = m.get_job_queue(), m.get_result_queue()
 
     in_list = [round(amount/chunks) for _ in range(chunks)]   # in_list and result_list might be faster with numpy
     print(f"Amount of jobs: {len(in_list)}")
     print(f"Job Size: {in_list[0]}")
     result_list = []
-    
+
     for arg in in_list:
         job_queue.put(arg)
     job_queue.join()
     while not result_queue.empty():
-        result_list.append(result_queue.get()) 
+        result_list.append(result_queue.get())
     return result_list
+
 
 if __name__ == '__main__':
     from sys import argv, exit
@@ -23,7 +27,7 @@ if __name__ == '__main__':
     server_socket = int(argv[2])
     TaskManager.register('get_job_queue')
     TaskManager.register('get_result_queue')
-    m = TaskManager(address=(server_ip, server_socket), authkey = b'secret')
+    m = TaskManager(address=(server_ip, server_socket), authkey=b'secret')
     m.connect()
 
     t1 = time.time()
