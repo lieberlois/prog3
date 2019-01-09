@@ -6,8 +6,8 @@ import simulation_physic as sp
 def __worker_function(job_queue, result_queue):
     while True:
         task = job_queue.get()
-        result = sp.wrap_move_bodies(task)
-        # TODO: Should we put _move_bodies() in here or find a better place for it?
+        result = sp.wrap_move_bodies(*task) # wenn wir move bodies als cpdef deklarieren gehts ohne wrapper
+        # In the tuple task should be positions,speed,mass,timestep and probably the index range
         result_queue.put(result)
         job_queue.task_done()
 
