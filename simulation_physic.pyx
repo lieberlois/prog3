@@ -39,10 +39,25 @@ cdef double G_CONSTANT = 6.673e-11
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.cdivision(True)
-cdef void _move_bodies_circle(double[:, ::1] positions,
+cdef void _move_bodies_circle(double[:, ::1] positions, #This method probably also needs to receiver a master
                               double[:, ::1] speed,
                               double[::1] mass,
                               double timestep):
+
+    # THIS LOGIC WILL MOVE IN THE WORKER
+    #
+    # In order for this to work we will need something like a calculation range (Planet 1 - 200 or similar)
+    # Also: consider using a dictionary as shared memory!
+    # The code remaining here will probably be something like
+
+    # result = distributedMaster.calculate(positions, speed, mass, timestep)
+
+    # for planet in range(mass.shape[0]):
+    #    positions[planet][0] = result[planet][0]
+    #    positions[planet][1] = result[planet][1]
+    #    positions[planet][2] = result[planet][2]
+
+
     """
     Iteriert durch alle Körper und berechnet
     ihre neue Geschwindigkeit und Position.
@@ -253,6 +268,10 @@ cpdef void startup(sim_pipe, int nr_of_bodies, tuple mass_lim, tuple dis_lim, tu
                                                         dis_lim,
                                                         rad_lim,
                                                         black_weight)
+    
+    # TODO: This is probably the best location to initialize the distributedMaster.
+ 
+
     while True:
         if sim_pipe.poll():
             message = sim_pipe.recv()
@@ -260,7 +279,7 @@ cpdef void startup(sim_pipe, int nr_of_bodies, tuple mass_lim, tuple dis_lim, tu
                 print('simulation exiting ...')
                 sys.exit(0)
 
-        _move_bodies_circle(positions, speed, mass, timestep)
+        _move_bodies_circle(positions, speed, mass, timestep) # We probably need to pass the distributedMaster
         pos_with_radius = np.c_[positions, radius]
         sim_pipe.send(pos_with_radius * (1/dis_lim[1]))
         # Positions changed in movedbodies is sent to renderer through the pipe
