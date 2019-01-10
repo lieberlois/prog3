@@ -109,5 +109,4 @@ def _main(argv):
 
 
 if __name__ == '__main__':
-    # TODO: The Compiling of our Cython files should be handled here
     _main(sys.argv)

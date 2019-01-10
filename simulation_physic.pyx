@@ -61,13 +61,6 @@ cdef double[:, ::1] _move_bodies_circle(double[:, ::1] positions,
     cdef double abs_delta = 0.0
 
     for i in prange(1, mass.shape[0], nogil=True):
-        '''
-        Idea to optimise mass focus positions calculation
-        and mass focus weight calculation:
-            calculate it once and then add and subtract the right
-            values each time you go through the loop, instead of going
-            through this current loop every time! O(mass.shape[0]**2)
-        '''
         force[0] = 0.0
         force[1] = 0.0
         force[2] = 0.0
@@ -100,21 +93,7 @@ cpdef tuple _mp_move_bodies_circle(double[:, ::1] positions,
                                    double[:, ::1] speed,
                                    double[::1] mass,
                                    double timestep,
-                                   int[::1] indexrange):
-    # This method probably also needs to receive a master
-
-    # THIS LOGIC WILL MOVE IN THE WORKER
-    #
-    # In order for this to work we will need something like a calculation range (Planet 1 - 200 or similar)
-    # Also: consider using a dictionary as shared memory!
-    # The code remaining here will probably be something like
-
-    # result = distributedMaster.calculate(positions, speed, mass, timestep)
-
-    # for planet in range(1, mass.shape[0]):
-    #    positions[planet][0] = result[planet][0]
-    #    positions[planet][1] = result[planet][1]
-    #    positions[planet][2] = result[planet][2]
+                                   indexrange):
     """
     Iteriert durch alle Körper und berechnet
     ihre neue Geschwindigkeit und Position.
@@ -133,16 +112,8 @@ cpdef tuple _mp_move_bodies_circle(double[:, ::1] positions,
     cdef double abs_delta = 0.0
 
     cdef int start_value = indexrange[0]
-    cdef int end_value = indexrange[indexrange.shape[0] - 1]
-
-    for i in prange(start_value, end_value, nogil=True):
-        '''
-        Idea to optimise mass focus positions calculation
-        and mass focus weight calculation:
-            calculate it once and then add and subtract the right
-            values each time you go through the loop, instead of going
-            through this current loop every time! O(mass.shape[0]**2)
-        '''
+    cdef int end_value = indexrange[len(indexrange) - 1]
+    for i in prange(start_value, end_value + 1, nogil=True):
         force[0] = 0.0
         force[1] = 0.0
         force[2] = 0.0
@@ -163,11 +134,13 @@ cpdef tuple _mp_move_bodies_circle(double[:, ::1] positions,
             # G FORCE TO ACCELERATION
             accel[j] = force[j] * G_CONSTANT
             # NEXT LOCATION
-            positions[i][j] = positions[i][j] + timestep * speed[i][j] + (timestep*timestep/2.0) * accel[j]
+            positions[i][j] = positions[i][j] + timestep * speed[i - start_value][j] + (timestep*timestep/2.0) * accel[j]
             # SPEED
-            speed[i][j] = speed[i][j] + timestep * accel[j]
+            speed[i - start_value][j] = speed[i - start_value][j] + timestep * accel[j]
 
-    return (positions, speed)
+    pos = np.array(positions)
+    spe = np.array(speed)
+    return (pos, spe, indexrange)
 
 
 @cython.boundscheck(False)
@@ -300,6 +273,50 @@ cdef int _get_sign():
     return 1 if (<double>rand()/<double>RAND_MAX) >= 0.5 else -1
 
 
+from distributedManager import TaskManager
+import socket
+
+def __calculate(m, positions, speed, mass, timestep):
+    job_queue, result_queue = m.get_job_queue(), m.get_result_queue()
+
+    in_list = __create_argument_list(positions, speed, mass, timestep)
+    result_list = []
+
+    for arg in in_list:
+        job_queue.put(arg)
+    job_queue.join()
+    while not result_queue.empty():
+        result_list.append(result_queue.get())
+    return result_list
+
+def __create_argument_list(positions, speed, mass, timestep):
+    """
+    Create a tuple of positions, speed, mass, timestep and indexrange
+    """
+    # converting mem views to np array
+    step = 10 # number of positions every worker has to work with
+    count = 1
+    pos = np.array(positions)
+    spe = np.zeros((step, 3), dtype=np.float64)
+    mas = np.array(mass)
+    l = []
+
+    for i in range(1, mass.shape[0], step):
+        index = 0
+        indexrange = []
+        for j in range(i, step*count+1):
+            if j > mass.shape[0]:
+                break
+            spe[index][0] = speed[j][0]
+            spe[index][1] = speed[j][1]
+            spe[index][2] = speed[j][2]
+            indexrange.append(j)
+            index += 1
+        count += 1
+        l.append((pos, spe, mas, timestep, indexrange))
+    return l
+
+
 cpdef void startup(sim_pipe, int nr_of_bodies, tuple mass_lim, tuple dis_lim, tuple rad_lim, black_weight, double timestep):
     """
         Initialise and continuously update a position list.
@@ -310,7 +327,6 @@ cpdef void startup(sim_pipe, int nr_of_bodies, tuple mass_lim, tuple dis_lim, tu
             sim_pipe (multiprocessing.Pipe): Pipe to send results
             delta_t (float): Simulation step width.
     """
-
     cdef double[:, ::1] positions = np.zeros((nr_of_bodies+1, 3), dtype=np.float64)
     cdef double[:, ::1] speed = np.zeros((nr_of_bodies+1, 3), dtype=np.float64)
     cdef double[::1] radius = np.zeros(nr_of_bodies+1, dtype=np.float64)
@@ -322,8 +338,13 @@ cpdef void startup(sim_pipe, int nr_of_bodies, tuple mass_lim, tuple dis_lim, tu
                                                         rad_lim,
                                                         black_weight)
 
-    # TODO: This is probably the best location to initialize the distributedMaster.
-
+    # server_ip = socket.gethostbyname(socket.gethostname())
+    server_ip = "10.0.2.15"
+    server_socket = 1337
+    TaskManager.register('get_job_queue')
+    TaskManager.register('get_result_queue')
+    m = TaskManager(address=(server_ip, server_socket), authkey=b'secret')
+    m.connect()
 
     while True:
         if sim_pipe.poll():
@@ -332,7 +353,22 @@ cpdef void startup(sim_pipe, int nr_of_bodies, tuple mass_lim, tuple dis_lim, tu
                 print('simulation exiting ...')
                 sys.exit(0)
 
-        _move_bodies_circle(positions, speed, mass, timestep) # We probably need to pass the distributedMaster
+        result_list = __calculate(m, positions, speed, mass, timestep)
+        for result in result_list:
+            pos = result[0]
+            spe = result[1]
+            indexrange = result[2]
+
+            count = 0
+            for i in indexrange:
+                positions[i][0] = pos[i][0]
+                positions[i][1] = pos[i][1]
+                positions[i][2] = pos[i][2]
+                speed[i][0] = spe[count][0]
+                speed[i][1] = spe[count][1]
+                speed[i][2] = spe[count][2]
+                count += 1
+
         pos_with_radius = np.c_[positions, radius]
         sim_pipe.send(pos_with_radius * (1/dis_lim[1]))
         # Positions changed in movedbodies is sent to renderer through the pipe

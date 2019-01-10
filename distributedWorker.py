@@ -7,9 +7,8 @@ def __worker_function(job_queue, result_queue):
     while True:
         task = job_queue.get()
         result = sp._mp_move_bodies_circle(*task)
-        # In the tuple task should be positions,speed,mass,timestep and probably the index range
-        # if error here check job queue
-        # the move bodies function returns a tuple (positions, speed)
+        # In the tuple task should be positions,speed,mass,timestep
+        # and probably the index range
         result_queue.put(result)
         job_queue.task_done()
 
